@@ -1,0 +1,90 @@
+{% load poll_extras %}
+<article class="card poll-card" id="poll-{{ poll.id }}">
+  <!-- Header: Author & Date -->
+  <div class="poll-header">
+    <div class="poll-author-info">
+      <div class="author-avatar">{{ poll.author.username|slice:":1" }}</div>
+      <div class="author-meta">
+        <span class="author-name">@{{ poll.author.username }}</span>
+        <span class="poll-time">{{ poll.created_at|timesince }} önce</span>
+      </div>
+    </div>
+
+    <div class="poll-header-actions">
+      {% if user.is_authenticated and user == poll.author %}
+        <a href="{% url 'polls:delete' poll_id=poll.id %}" class="btn btn-sm btn-outline" style="border-color: var(--accent-2); color: var(--accent-2);" title="Anketi Sil">
+          🗑️ Sil
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Question -->
+  <h2 class="poll-question">
+    <a href="{% url 'polls:detail' poll_id=poll.id %}">{{ poll.question }}</a>
+  </h2>
+
+  <!-- Body: Voting or Results -->
+  <div class="poll-body">
+    {% with user_has_voted=poll|has_voted:request %}
+      {% if user_has_voted %}
+        <!-- RESULTS VIEW (Only visible after voting) -->
+        {% with current_vote=poll|get_user_vote:request %}
+          <div class="poll-results-list">
+            {% for choice in poll.choices.all %}
+              <div class="result-item {% if current_vote and current_vote.choice_id == choice.id %}user-selected{% endif %}">
+                <div class="result-item-bar" style="width: {{ choice|percentage }}%"></div>
+                <div class="result-text">
+                  <span>{{ choice.text }}</span>
+                  {% if current_vote and current_vote.choice_id == choice.id %}
+                    <span class="result-badge">Senin Oyun</span>
+                  {% endif %}
+                </div>
+                <div class="result-stats">
+                  <span class="result-percentage">{{ choice|percentage }}%</span>
+                  <span class="result-count">({{ choice.vote_count }} oy)</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endwith %}
+      {% else %}
+        <!-- VOTING VIEW (Choices shown, results hidden until vote) -->
+        <form action="{% url 'polls:vote' poll_id=poll.id %}" method="POST" class="poll-choices-form">
+          {% csrf_token %}
+          <div class="choices-list">
+            {% for choice in poll.choices.all %}
+              <div class="choice-option">
+                <button type="submit" name="choice" value="{{ choice.id }}" class="choice-btn">
+                  <span><span class="choice-circle"></span>{{ choice.text }}</span>
+                  <span style="opacity: 0.6; font-size: 0.85rem;">Oy Ver &rarr;</span>
+                </button>
+              </div>
+            {% endfor %}
+          </div>
+        </form>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Footer -->
+  <div class="poll-footer">
+    <div class="poll-stats">
+      <span class="stat-item" title="Toplam Oy">
+        🗳️ <strong class="total-votes-count">{{ poll.total_votes }}</strong> oy
+      </span>
+      <span class="stat-item">
+        📋 {{ poll.choices.count }} seçenek
+      </span>
+    </div>
+
+    <div class="poll-actions">
+      <button type="button" class="btn btn-sm btn-secondary btn-share" data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'polls:detail' poll_id=poll.id %}" title="Anketi Paylaş">
+        🔗 Paylaş
+      </button>
+      <a href="{% url 'polls:detail' poll_id=poll.id %}" class="btn btn-sm btn-outline" title="Anket Sayfasına Git">
+        Detay
+      </a>
+    </div>
+  </div>
+</article>

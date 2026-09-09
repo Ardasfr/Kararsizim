@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load poll_extras %}
+
+{% block title %}Sonuçlar: {{ poll.question }} — Kararsızım{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1rem;">
+  <a href="{% url 'polls:feed' %}" class="btn btn-secondary btn-sm">
+    &larr; Ana Akışa Dön
+  </a>
+</div>
+
+<article class="card">
+  <div class="poll-header">
+    <div class="poll-author-info">
+      <div class="author-avatar">{{ poll.author.username|slice:":1" }}</div>
+      <div class="author-meta">
+        <span class="author-name">@{{ poll.author.username }}</span>
+        <span class="poll-time">{{ poll.created_at|timesince }} önce paylaştı</span>
+      </div>
+    </div>
+    <span class="result-badge" style="background: var(--accent-3);">Oylama Tamamlandı</span>
+  </div>
+
+  <h1 class="poll-question" style="font-size: 1.4rem; margin-bottom: 1.5rem;">
+    {{ poll.question }}
+  </h1>
+
+  <div class="poll-results-list">
+    {% for choice in poll.choices.all %}
+      <div class="result-item {% if user_vote and user_vote.choice_id == choice.id %}user-selected{% endif %}">
+        <div class="result-item-bar" style="width: {{ choice|percentage }}%"></div>
+        <div class="result-text">
+          <span>{{ choice.text }}</span>
+          {% if user_vote and user_vote.choice_id == choice.id %}
+            <span class="result-badge">Senin Oyun</span>
+          {% endif %}
+        </div>
+        <div class="result-stats">
+          <span class="result-percentage">{{ choice|percentage }}%</span>
+          <span class="result-count">({{ choice.vote_count }} oy)</span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="poll-footer" style="margin-top: 1.5rem;">
+    <div class="poll-stats">
+      <span class="stat-item">
+        🗳️ Toplam <strong>{{ poll.total_votes }}</strong> oy kullanıldı
+      </span>
+    </div>
+
+    <div class="poll-actions">
+      <button type="button" class="btn btn-sm btn-primary btn-share" data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'polls:detail' poll_id=poll.id %}">
+        🔗 Paylaş
+      </button>
+    </div>
+  </div>
+</article>
+{% endblock %}

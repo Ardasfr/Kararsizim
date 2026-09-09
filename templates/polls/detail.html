@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ poll.question }} — Kararsızım{% endblock %}
+{% block meta_description %}Topluluk kararı: {{ poll.question }} Hemen oy ver, fikirleri gör!{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1rem;">
+  <a href="{% url 'polls:feed' %}" class="btn btn-secondary btn-sm">
+    &larr; Tüm Anketlere Dön
+  </a>
+</div>
+
+{% include 'partials/_poll_card.html' with poll=poll %}
+
+<div class="card" style="margin-top: 1rem; background: var(--accent-1-soft); border-color: rgba(108, 99, 255, 0.2);">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem;">Arkadaşlarına da sor!</h3>
+      <p style="font-size: 0.85rem; color: var(--text-secondary);">
+        Bu anketin bağlantısını paylaşarak daha fazla kişinin oy vermesini sağla.
+      </p>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm btn-share" data-url="{{ request.build_absolute_uri }}">
+      🔗 Bağlantıyı Kopyala
+    </button>
+  </div>
+</div>
+{% endblock %}

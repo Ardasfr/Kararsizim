@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Kararsızım — Hızlı Karar & Topluluk Anketleri{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Kararsız kaldığın konularda anket oluştur, topluluğun oyunu al ve kararını kolayca ver!{% endblock %}">
+  
+  <!-- Open Graph / SEO -->
+  <meta property="og:title" content="Kararsızım — Toplulukla Karar Al">
+  <meta property="og:description" content="Kararsız kaldığın konularda anket oluştur, topluluktan anında geri bildirim al.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  {% include 'partials/_navbar.html' %}
+
+  <!-- Flash Messages -->
+  <main class="main-wrapper">
+    {% include 'partials/_messages.html' %}
+    
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <p><strong>🤔 Kararsızım</strong> — Kararsız anların pratik topluluk rehberi.</p>
+      <p class="text-muted">&copy; 2026 Kararsızım. Tüm hakları saklıdır.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

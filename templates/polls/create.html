@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni Anket Başlat — Kararsızım{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 580px; margin: 0 auto;">
+  <div style="text-align: center; margin-bottom: 1.5rem;">
+    <span style="font-size: 2.5rem;">🤔</span>
+    <h1 style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-top: 0.5rem;">
+      Yeni Bir Kararsızlık Paylaş
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 0.9rem;">
+      Aklındaki soruyu yaz, 2 ile 5 arasında seçenek ekle ve topluluğa sor.
+    </p>
+  </div>
+
+  <form method="POST" action="{% url 'polls:create' %}" id="poll-create-form">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-error" style="margin-bottom: 1rem;">
+        {% for err in form.non_field_errors %}
+          <div>{{ err }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Soru -->
+    <div class="form-group">
+      <label for="{{ form.question.id_for_label }}" class="form-label">
+        Kararsız Kaldığın Soru <span style="color: var(--accent-2);">*</span>
+      </label>
+      {{ form.question }}
+      {% if form.question.errors %}
+        <span class="form-error">{{ form.question.errors.0 }}</span>
+      {% endif %}
+      <span class="form-hint">Maksimum 300 karakter. Net ve anlaşılır bir soru sorun.</span>
+    </div>
+
+    <!-- Seçenekler -->
+    <div class="form-group">
+      <label class="form-label">
+        Seçenekler (En az 2, en fazla 5) <span style="color: var(--accent-2);">*</span>
+      </label>
+
+      <div id="dynamic-choices-container" class="dynamic-choices">
+        <div class="choice-row">
+          <input type="text" name="choices[]" class="form-input" placeholder="1. Seçenek (Örn: Seçenek A)" maxlength="100" required autocomplete="off">
+          <button type="button" class="choice-remove-btn" title="Seçeneği kaldır" style="display: none;">&times;</button>
+        </div>
+        <div class="choice-row">
+          <input type="text" name="choices[]" class="form-input" placeholder="2. Seçenek (Örn: Seçenek B)" maxlength="100" required autocomplete="off">
+          <button type="button" class="choice-remove-btn" title="Seçeneği kaldır" style="display: none;">&times;</button>
+        </div>
+      </div>
+
+      <button type="button" id="add-choice-btn" class="btn btn-secondary btn-sm" style="align-self: flex-start; margin-top: 0.5rem;">
+        ➕ Başka Seçenek Ekle (Maks 5)
+      </button>
+    </div>
+
+    <!-- Submit -->
+    <div style="margin-top: 2rem; display: flex; align-items: center; justify-content: space-between;">
+      <a href="{% url 'polls:feed' %}" class="btn btn-secondary">
+        İptal
+      </a>
+      <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+        🚀 Anketi Yayınla
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

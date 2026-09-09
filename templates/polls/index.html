@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Kararsızım — Günün Kararları & Topluluk Anketleri{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+  <h1 class="hero-title">Kararsız mı kaldın? 🤔</h1>
+  <p class="hero-subtitle">
+    İki seçenek arasında mı sıkıştın? Topluluğa sor, hızlıca fikir al ve kararını kolayca ver!
+  </p>
+  <div>
+    <a href="{% url 'polls:create' %}" class="btn btn-primary">
+      ✨ Kararsızlığını Paylaş
+    </a>
+  </div>
+</section>
+
+<section class="feed-section">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+    <h2 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 800;">
+      🔥 Güncel Anketler
+    </h2>
+    <span style="font-size: 0.85rem; color: var(--text-muted);">
+      En yeniden eskiye
+    </span>
+  </div>
+
+  {% if polls %}
+    <div class="polls-feed">
+      {% for poll in polls %}
+        {% include 'partials/_poll_card.html' with poll=poll %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🗳️</div>
+      <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Henüz bir anket yok</h3>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+        İlk kararsız kalan sen ol ve topluluğun fikrini öğrenmeye başla!
+      </p>
+      <a href="{% url 'polls:create' %}" class="btn btn-primary">
+        İlk Anketi Başlat
+      </a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

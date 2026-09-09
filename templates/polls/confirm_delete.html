@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Anketi Sil — Kararsızım{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 2rem auto; text-align: center;">
+  <span style="font-size: 3rem;">⚠️</span>
+  <h1 style="font-family: var(--font-display); font-size: 1.4rem; margin: 1rem 0 0.5rem 0;">
+    Bu anketi silmek istediğine emin misin?
+  </h1>
+  <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+    "<strong>{{ poll.question }}</strong>" anketi ve ankete verilmiş olan toplam <strong>{{ poll.total_votes }}</strong> oy kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+  </p>
+
+  <form method="POST">
+    {% csrf_token %}
+    <div style="display: flex; justify-content: center; gap: 1rem;">
+      <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+        Vazgeç
+      </a>
+      <button type="submit" class="btn btn-danger">
+        Evet, Anketi Sil
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
