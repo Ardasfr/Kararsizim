@@ -1,7 +1,7 @@
 import datetime
 from django.utils import timezone
 from django import forms
-from .models import Poll, Choice
+from .models import Poll, Choice, Category
 
 DURATION_CHOICES = [
     ('0', 'Süresiz (İstediğin kadar açık kalsın)'),
@@ -32,9 +32,19 @@ class PollCreateForm(forms.ModelForm):
         label='Anket Süresi'
     )
 
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.all(),
+        required=False,
+        empty_label='🏷️ Kategori Seç (İsteğe bağlı)',
+        widget=forms.Select(attrs={
+            'class': 'form-input',
+        }),
+        label='Kategori / Etiket'
+    )
+
     class Meta:
         model = Poll
-        fields = ['question']
+        fields = ['question', 'category']
 
     def calculate_expires_at(self):
         duration = self.cleaned_data.get('duration', '0')

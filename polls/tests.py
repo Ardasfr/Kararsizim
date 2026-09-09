@@ -141,3 +141,45 @@ class KararsizimTests(TestCase):
         res_resp = self.client.get(results_url)
         self.assertEqual(res_resp.status_code, 200)
         self.assertContains(res_resp, 'Eski 1')
+
+    def test_category_filtering_and_trending_tab(self):
+        from polls.models import Category
+
+        cat_tekno = Category.objects.create(name='Teknoloji Test', slug='tekno-test', icon='💻')
+        cat_yemek = Category.objects.create(name='Yemek Test', slug='yemek-test', icon='🍔')
+
+        p_tekno = Poll.objects.create(author=self.user1, question='Hangi laptop?', category=cat_tekno)
+        Choice.objects.create(poll=p_tekno, text='MacBook')
+        c_win = Choice.objects.create(poll=p_tekno, text='ThinkPad')
+
+        p_yemek = Poll.objects.create(author=self.user1, question='Hangi corba?', category=cat_yemek)
+        Choice.objects.create(poll=p_yemek, text='Mercimek')
+        Choice.objects.create(poll=p_yemek, text='Ezogelin')
+
+        # 1. Kategori filtre testi
+        feed_url = reverse('polls:feed')
+        resp_tekno = self.client.get(feed_url, {'category': 'tekno-test'})
+        self.assertContains(resp_tekno, 'Hangi laptop?')
+        self.assertNotContains(resp_tekno, 'Hangi corba?')
+
+        # 2. Trendler sekmesi testi: p_tekno'ya 1 oy verelim
+        Vote.objects.create(poll=p_tekno, choice=c_win, session_key='trend_sess_1')
+
+        resp_trend = self.client.get(feed_url, {'tab': 'trending'})
+        self.assertEqual(resp_trend.status_code, 200)
+        # Ilk sirada p_tekno olmali
+        self.assertEqual(resp_trend.context['polls'][0].id, p_tekno.id)
+
+    def test_moderation_deactivation(self):
+        # Pasif anket feed'de gorunmemeli
+        p_passive = Poll.objects.create(
+            author=self.user1,
+            question='Uygunsuz veya moderasyona takilmis anket',
+            is_active=False
+        )
+        Choice.objects.create(poll=p_passive, text='A')
+        Choice.objects.create(poll=p_passive, text='B')
+
+        feed_url = reverse('polls:feed')
+        resp = self.client.get(feed_url)
+        self.assertNotContains(resp, 'Uygunsuz veya moderasyona takilmis anket')

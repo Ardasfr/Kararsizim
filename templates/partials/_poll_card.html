@@ -11,6 +11,12 @@
     </div>
 
     <div class="poll-header-actions" style="display: flex; align-items: center; gap: 0.5rem;">
+      {% if poll.category %}
+        <a href="{% url 'polls:feed' %}?category={{ poll.category.slug }}" class="badge-category" title="{{ poll.category.name }} anketleri">
+          {{ poll.category.icon }} {{ poll.category.name }}
+        </a>
+      {% endif %}
+
       {% if poll.expires_at %}
         {% if poll.is_expired %}
           <span style="font-size: 0.75rem; font-weight: 700; background: var(--accent-2-soft); color: var(--accent-2); padding: 0.2rem 0.6rem; border-radius: var(--border-radius-pill);">
@@ -91,7 +97,7 @@
     </div>
 
     <div class="poll-actions">
-      <button type="button" class="btn btn-sm btn-secondary btn-share" data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'polls:detail' poll_id=poll.id %}" title="Anketi Paylaş">
+      <button type="button" class="btn btn-sm btn-secondary btn-share" data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'polls:detail' poll_id=poll.id %}" data-title="{{ poll.question }}" title="Anketi Paylaş">
         🔗 Paylaş
       </button>
       <a href="{% url 'polls:detail' poll_id=poll.id %}" class="btn btn-sm btn-outline" title="Anket Sayfasına Git">

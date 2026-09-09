@@ -3,8 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseForbidden
 from django.db import IntegrityError, transaction
+from django.db.models import Count
 from django.core.paginator import Paginator
-from .models import Poll, Choice, Vote
+from .models import Poll, Choice, Vote, Category
 from .forms import PollCreateForm
 
 def get_client_ip(request):
@@ -23,24 +24,45 @@ def ensure_session(request):
     return request.session.session_key
 
 def poll_feed(request):
-    """Ana sayfa: Arama ve Django Paginator ile anket akışı."""
+    """Ana sayfa: Arama, Kategori Filtresi, Trend Sekmesi ve Sayfalama ile anket akışı."""
     ensure_session(request)
-    polls_qs = Poll.objects.filter(is_active=True).select_related('author').prefetch_related('choices', 'votes')
+    polls_qs = Poll.objects.filter(is_active=True).select_related('author', 'category').prefetch_related('choices', 'votes')
 
     # Arama filtresi
     q = request.GET.get('q', '').strip()
     if q:
         polls_qs = polls_qs.filter(question__icontains=q)
 
+    # Kategori filtresi
+    category_slug = request.GET.get('category', '').strip()
+    current_category = None
+    if category_slug:
+        current_category = Category.objects.filter(slug=category_slug).first()
+        if current_category:
+            polls_qs = polls_qs.filter(category=current_category)
+
+    # Sekme sıralaması: En Yeniler vs Trendler
+    tab = request.GET.get('tab', 'latest').strip()
+    if tab == 'trending':
+        polls_qs = polls_qs.annotate(num_votes=Count('votes')).order_by('-num_votes', '-created_at')
+    else:
+        tab = 'latest'
+        polls_qs = polls_qs.order_by('-created_at')
+
     # Sayfalama (Her sayfada 5 anket)
     paginator = Paginator(polls_qs, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    categories = Category.objects.all()
+
     return render(request, 'polls/index.html', {
         'page_obj': page_obj,
         'polls': page_obj.object_list,
         'q': q,
+        'tab': tab,
+        'categories': categories,
+        'current_category': current_category,
         'total_count': paginator.count,
     })
 

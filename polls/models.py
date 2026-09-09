@@ -2,6 +2,22 @@ import uuid
 from django.db import models
 from django.conf import settings
 
+class Category(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50, unique=True, verbose_name='Kategori Adı')
+    slug = models.SlugField(max_length=50, unique=True, verbose_name='Slug')
+    icon = models.CharField(max_length=10, default='💡', verbose_name='İkon / Emoji')
+    order = models.PositiveSmallIntegerField(default=0, verbose_name='Sıra')
+
+    class Meta:
+        ordering = ['order', 'name']
+        verbose_name = 'Kategori'
+        verbose_name_plural = 'Kategoriler'
+
+    def __str__(self):
+        return f"{self.icon} {self.name}"
+
+
 class Poll(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(
@@ -9,6 +25,14 @@ class Poll(models.Model):
         on_delete=models.CASCADE,
         related_name='polls',
         verbose_name='Yazar'
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='polls',
+        verbose_name='Kategori'
     )
     question = models.CharField(
         max_length=300,

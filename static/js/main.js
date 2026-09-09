@@ -197,7 +197,7 @@ function initDynamicChoices() {
 }
 
 /* ==========================================================================
-   4. Share Button (Clipboard copy)
+   4. Share Button (Native Web Share API with Clipboard Fallback)
    ========================================================================== */
 function initShareButtons() {
   document.addEventListener('click', async (e) => {
@@ -205,10 +205,27 @@ function initShareButtons() {
     if (!shareBtn) return;
 
     const url = shareBtn.getAttribute('data-url') || window.location.href;
+    const title = shareBtn.getAttribute('data-title') || '🤔 Kararsızım — Bir oy da sen ver!';
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          text: '🤔 Kararsızım! Bu ankette senin fikrin ne? Bir oy da sen ver:',
+          url: url
+        });
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          return; // Kullanıcı paylaşımı iptal etti
+        }
+      }
+    }
+
     try {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);
-        showToast('🔗 Bağlantı panoya kopyalandı!');
+        showToast('🔗 Bağlantı panoya kopyalandı! Arkadaşlarınla paylaşabilirsin.');
       } else {
         showToast('Bağlantı: ' + url);
       }

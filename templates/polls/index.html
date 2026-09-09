@@ -16,27 +16,55 @@
 </section>
 
 <section class="feed-section">
+  <!-- Feed Tabs: En Yeniler vs Trendler -->
+  <div class="feed-tabs-wrapper">
+    <a href="?tab=latest{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="feed-tab {% if tab == 'latest' %}active{% endif %}">
+      <span>🔥</span> En Yeniler
+    </a>
+    <a href="?tab=trending{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="feed-tab {% if tab == 'trending' %}active{% endif %}">
+      <span>⚡</span> Trendler
+    </a>
+  </div>
+
+  <!-- Category Pills -->
+  <div class="category-scroll-container">
+    <a href="?{% if tab %}&tab={{ tab }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="category-pill {% if not current_category %}active{% endif %}">
+      Tümü
+    </a>
+    {% for cat in categories %}
+      <a href="?category={{ cat.slug }}{% if tab %}&tab={{ tab }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="category-pill {% if current_category and current_category.slug == cat.slug %}active{% endif %}">
+        <span>{{ cat.icon }}</span> {{ cat.name }}
+      </a>
+    {% endfor %}
+  </div>
+
   <!-- Search Bar -->
   <form method="GET" action="{% url 'polls:feed' %}" class="search-form" style="margin-bottom: 1.5rem;">
+    {% if tab %}<input type="hidden" name="tab" value="{{ tab }}">{% endif %}
+    {% if current_category %}<input type="hidden" name="category" value="{{ current_category.slug }}">{% endif %}
     <div style="position: relative; display: flex; align-items: center;">
       <span style="position: absolute; left: 1rem; font-size: 1.1rem; opacity: 0.6; pointer-events: none;">🔍</span>
       <input type="text" name="q" value="{{ q }}" placeholder="Aklındaki konuyu ara... (Örn: telefon, tatil, araba)" class="form-input" style="padding-left: 2.8rem; padding-right: {% if q %}2.8rem{% else %}1rem{% endif %}; border-radius: var(--border-radius-pill);" autocomplete="off">
       {% if q %}
-        <a href="{% url 'polls:feed' %}" style="position: absolute; right: 1rem; font-size: 1.25rem; color: var(--text-muted); text-decoration: none;" title="Aramayı temizle">&times;</a>
+        <a href="?{% if tab %}&tab={{ tab }}{% endif %}{% if current_category %}&category={{ current_category.slug }}{% endif %}" style="position: absolute; right: 1rem; font-size: 1.25rem; color: var(--text-muted); text-decoration: none;" title="Aramayı temizle">&times;</a>
       {% endif %}
     </div>
   </form>
 
   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
-    <h2 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 800;">
+    <h2 style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800;">
       {% if q %}
         🔎 "{{ q }}" Arama Sonuçları
+      {% elif current_category %}
+        {{ current_category.icon }} {{ current_category.name }} Anketleri
+      {% elif tab == 'trending' %}
+        ⚡ En Çok Oy Alan Trendler
       {% else %}
         🔥 Güncel Anketler
       {% endif %}
     </h2>
     <span style="font-size: 0.85rem; color: var(--text-muted);">
-      Toplam {{ total_count }} anket
+      {{ total_count }} anket
     </span>
   </div>
 
@@ -51,7 +79,7 @@
     {% if page_obj.has_other_pages %}
       <nav style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 2rem;" aria-label="Sayfalama">
         {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
+          <a href="?page={{ page_obj.previous_page_number }}{% if tab %}&tab={{ tab }}{% endif %}{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
             &larr; Önceki
           </a>
         {% else %}
@@ -65,7 +93,7 @@
         </span>
 
         {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
+          <a href="?page={{ page_obj.next_page_number }}{% if tab %}&tab={{ tab }}{% endif %}{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
             Sonraki &rarr;
           </a>
         {% else %}
