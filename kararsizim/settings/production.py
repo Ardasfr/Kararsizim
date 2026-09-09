@@ -3,12 +3,17 @@ from .base import *
 DEBUG = False
 
 # Host header validation
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '.vercel.app').split(',') if host.strip()]
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '.vercel.app,localhost,127.0.0.1').split(',') if host.strip()]
 
 # CSRF Trusted Origins for Vercel
 CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
+    'https://*.now.sh',
 ]
+csrf_env = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+if csrf_env:
+    CSRF_TRUSTED_ORIGINS.extend([origin.strip() for origin in csrf_env.split(',') if origin.strip()])
+
 
 # Production Security
 SECURE_SSL_REDIRECT = True
