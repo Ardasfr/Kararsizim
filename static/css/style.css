@@ -92,6 +92,11 @@ html {
   scroll-behavior: smooth;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
   font-family: var(--font-body);
   background-color: var(--bg-primary);
@@ -102,6 +107,129 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ==========================================================================
+   Accessibility (A11y) Base & Focus Standards
+   ========================================================================== */
+
+/* Skip to Content Link (Visible on focus for keyboard/screen reader users) */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  background: var(--accent-1);
+  color: #FFFFFF !important;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--border-radius-md);
+  font-weight: 700;
+  font-size: 0.95rem;
+  z-index: 99999;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: top 0.2s ease;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: 3px solid #FFFFFF;
+  outline-offset: 2px;
+}
+
+/* High-Visibility Focus Ring for Keyboard Users */
+:focus-visible {
+  outline: 3px solid var(--accent-1) !important;
+  outline-offset: 3px !important;
+}
+
+/* Screen Reader Only Utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* A11y: Font Size Scaling */
+html[data-a11y-font-size="large"] {
+  font-size: 115% !important;
+}
+
+html[data-a11y-font-size="xlarge"] {
+  font-size: 130% !important;
+}
+
+/* A11y: Dyslexia-Friendly Font */
+[data-a11y-font="dyslexic"],
+[data-a11y-font="dyslexic"] * {
+  font-family: 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', Verdana, sans-serif !important;
+  letter-spacing: 0.04em !important;
+  word-spacing: 0.08em !important;
+  line-height: 1.65 !important;
+}
+
+/* A11y: High Contrast Mode */
+[data-a11y-contrast="high"] {
+  --bg-primary: #000000 !important;
+  --bg-card: #0A0A0A !important;
+  --bg-card-hover: #141414 !important;
+  --bg-subtle: #181818 !important;
+  --text-primary: #FFFFFF !important;
+  --text-secondary: #E0E0E0 !important;
+  --text-muted: #CCCCCC !important;
+  --border: #FFFFFF !important;
+  --accent-1: #FFE600 !important; /* Yüksek kontrast sarı */
+  --accent-1-hover: #FFF04D !important;
+  --accent-1-soft: rgba(255, 230, 0, 0.25) !important;
+  --accent-1-glow: rgba(255, 230, 0, 0.45) !important;
+  --accent-2: #FF4D4D !important;
+  --accent-3: #00FFCC !important;
+  --text-on-accent: #000000 !important;
+}
+
+[data-a11y-contrast="high"] .card,
+[data-a11y-contrast="high"] .btn,
+[data-a11y-contrast="high"] .navbar,
+[data-a11y-contrast="high"] .choice-btn,
+[data-a11y-contrast="high"] .result-item,
+[data-a11y-contrast="high"] .form-input {
+  border-width: 2px !important;
+  border-color: #FFFFFF !important;
+}
+
+[data-a11y-contrast="high"] .btn-primary {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+/* A11y: Underline Links */
+[data-a11y-underline="true"] a:not(.btn) {
+  text-decoration: underline !important;
+  text-underline-offset: 4px !important;
+  font-weight: 700 !important;
+}
+
+/* A11y: Reduced Motion (Both User Toggle and OS Setting) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+[data-a11y-motion="reduced"] *,
+[data-a11y-motion="reduced"] *::before,
+[data-a11y-motion="reduced"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
 }
 
 a {
@@ -514,7 +642,7 @@ a:hover {
 .choice-btn {
   width: 100%;
   text-align: left;
-  padding: 0.95rem 1.25rem;
+  padding: 0.85rem 1.15rem;
   background-color: var(--bg-subtle);
   border: 1.5px solid var(--border);
   border-radius: var(--border-radius-pill);
@@ -527,6 +655,8 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 48px;
 }
 
 .choice-btn:hover {
@@ -541,13 +671,26 @@ a:hover {
   transform: scale(0.98);
 }
 
+.choice-btn .choice-text {
+  display: inline-flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.choice-btn .choice-label {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
 .choice-btn .choice-circle {
   width: 20px;
   height: 20px;
   border-radius: 50%;
   border: 2px solid var(--border);
   transition: all 0.22s ease;
-  margin-right: 0.85rem;
+  margin-right: 0.75rem;
   display: inline-block;
   flex-shrink: 0;
   vertical-align: middle;
@@ -1168,18 +1311,313 @@ a:hover {
   }
 }
 
+/* ==========================================================================
+   Accessibility (A11y) Modal & Drawer Controls
+   ========================================================================== */
+
+.a11y-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.a11y-modal-backdrop.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.a11y-modal-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--border-radius-lg);
+  max-width: 520px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: translateY(20px) scale(0.97);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.a11y-modal-backdrop.is-active .a11y-modal-card {
+  transform: translateY(0) scale(1);
+}
+
+.a11y-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.a11y-modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.a11y-header-icon {
+  font-size: 1.4rem;
+}
+
+.a11y-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.a11y-modal-body {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.a11y-group-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.925rem;
+  margin-bottom: 0.6rem;
+  color: var(--text-primary);
+}
+
+.a11y-btn-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.a11y-btn {
+  padding: 0.6rem 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: var(--border-radius-md);
+  border: 1.5px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 44px;
+}
+
+.a11y-btn:hover {
+  border-color: var(--accent-1);
+}
+
+.a11y-btn[aria-pressed="true"] {
+  background: var(--accent-1);
+  border-color: var(--accent-1);
+  color: #FFFFFF;
+}
+
+.a11y-option-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-md);
+}
+
+.a11y-option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.a11y-option-title {
+  font-weight: 700;
+  font-size: 0.925rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.a11y-option-desc {
+  font-size: 0.775rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+/* Accessible Toggle Switch */
+.a11y-toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  min-width: 48px;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.a11y-toggle-track {
+  width: 44px;
+  height: 24px;
+  background-color: var(--border);
+  border-radius: 12px;
+  position: relative;
+  transition: background-color 0.22s ease;
+  display: inline-block;
+}
+
+.a11y-toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.a11y-toggle-btn[aria-checked="true"] .a11y-toggle-track {
+  background-color: var(--accent-1);
+}
+
+.a11y-toggle-btn[aria-checked="true"] .a11y-toggle-track::after {
+  transform: translateX(20px);
+}
+
+.a11y-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ==========================================================================
+   Mobile Responsive Rules (375px+ Viewport Optimization)
+   ========================================================================== */
+
 @media (max-width: 640px) {
   .navbar-container {
-    padding: 0.75rem 1rem;
+    padding: 0.65rem 0.85rem;
+    gap: 0.5rem;
+  }
+  .navbar-brand {
+    font-size: 1.15rem;
+  }
+  .brand-badge {
+    display: none; /* Mobilde marka rozetini gizleyip butonlara yer aç */
+  }
+  .navbar-actions {
+    gap: 0.35rem;
+  }
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+    flex-shrink: 0;
   }
   .main-wrapper {
-    margin: 1rem auto;
-    padding: 0 0.85rem;
+    margin: 0.85rem auto;
+    padding: 0 0.75rem;
   }
-  .hero-title {
-    font-size: 1.5rem;
+  .card {
+    padding: 1.15rem;
+    border-radius: var(--border-radius-md);
   }
   .poll-question {
     font-size: 1.1rem;
   }
+  /* Prevent iOS zoom on form inputs */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  .ask-prompt-card {
+    padding: 0.85rem 1rem;
+    gap: 0.65rem;
+  }
+  .ask-prompt-input {
+    font-size: 0.85rem;
+    padding: 0.6rem 0.9rem;
+  }
+  .feed-tabs-wrapper {
+    gap: 1rem;
+    margin-bottom: 1.15rem;
+  }
+  .feed-tab {
+    font-size: 0.95rem;
+  }
 }
+
+@media (max-width: 480px) {
+  .navbar-actions .btn-sm {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+  }
+  .navbar-create-btn .nav-btn-text {
+    display: none; /* 480px altında "+ Anket Aç" yerine sadece "➕" göster */
+  }
+  .navbar-create-btn {
+    padding: 0.4rem 0.65rem !important;
+  }
+  .user-pill {
+    padding: 0.2rem 0.3rem;
+  }
+  .user-pill-name {
+    display: none; /* Mobilde sadece yuvarlak avatar göster */
+  }
+  .poll-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .poll-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .poll-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .a11y-modal-card {
+    max-height: 95vh;
+  }
+  .a11y-btn-group {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 380px) {
+  .nav-register-btn {
+    display: none; /* 380px altında kayıt ol butonunu gizle, giriş yeterli */
+  }
+  .navbar-brand span {
+    font-size: 1.05rem;
+  }
+  .navbar-container {
+    padding: 0.5rem 0.65rem;
+  }
+}
+

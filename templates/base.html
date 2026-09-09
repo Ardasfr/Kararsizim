@@ -18,17 +18,22 @@
   {% block extra_head %}{% endblock %}
 </head>
 <body>
+  <!-- Skip to Content Link for Keyboard / Screen Reader Accessibility -->
+  <a href="#main-content" class="skip-link">İçeriğe Doğrudan Atla</a>
 
   <!-- Navigation Bar -->
   {% include 'partials/_navbar.html' %}
 
-  <!-- Flash Messages -->
-  <main class="main-wrapper">
+  <!-- Flash Messages & Main Content -->
+  <main id="main-content" class="main-wrapper" role="main">
     {% include 'partials/_messages.html' %}
     
     {% block content %}
     {% endblock %}
   </main>
+
+  <!-- Accessibility Settings Modal -->
+  {% include 'partials/_a11y_modal.html' %}
 
   <!-- Footer -->
   <footer class="footer">

@@ -5,6 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  initAccessibility();
   initAjaxVoting();
   initDynamicChoices();
   initShareButtons();
@@ -97,7 +98,7 @@ function renderPollResults(cardElement, data) {
   const choicesContainer = cardElement.querySelector('.poll-body');
   if (!choicesContainer) return;
 
-  let resultsHtml = `<div class="poll-results-list">`;
+  let resultsHtml = `<div class="poll-results-list" role="region" aria-label="Anket Sonuçları" aria-live="polite">`;
 
   data.choices.forEach(c => {
     const isSelected = c.is_selected;
@@ -236,7 +237,195 @@ function initShareButtons() {
 }
 
 /* ==========================================================================
-   5. Helper Utilities
+   5. Accessibility (A11y) Manager
+   ========================================================================== */
+function initAccessibility() {
+  const a11yToggleBtn = document.getElementById('a11y-toggle');
+  const a11yModal = document.getElementById('a11y-modal');
+  const a11yCloseBtn = document.getElementById('a11y-modal-close');
+  const a11ySaveCloseBtn = document.getElementById('a11y-save-close-btn');
+  const a11yResetBtn = document.getElementById('a11y-reset-btn');
+
+  const sizeBtns = document.querySelectorAll('.a11y-size-btn');
+  const contrastToggle = document.getElementById('a11y-contrast-toggle');
+  const fontToggle = document.getElementById('a11y-font-toggle');
+  const motionToggle = document.getElementById('a11y-motion-toggle');
+  const underlineToggle = document.getElementById('a11y-underline-toggle');
+
+  const STORAGE_KEY = 'kararsizim_a11y_settings';
+  const defaultSettings = {
+    fontSize: 'normal',
+    highContrast: false,
+    dyslexicFont: false,
+    reduceMotion: false,
+    underlineLinks: false
+  };
+
+  let currentSettings = loadSettings();
+  applySettings(currentSettings);
+
+  function loadSettings() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? { ...defaultSettings, ...JSON.parse(saved) } : { ...defaultSettings };
+    } catch (e) {
+      return { ...defaultSettings };
+    }
+  }
+
+  function saveSettings(settings) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch (e) {}
+  }
+
+  function applySettings(s) {
+    const html = document.documentElement;
+
+    // Font size
+    if (s.fontSize === 'normal') {
+      html.removeAttribute('data-a11y-font-size');
+    } else {
+      html.setAttribute('data-a11y-font-size', s.fontSize);
+    }
+    sizeBtns.forEach(btn => {
+      const match = btn.getAttribute('data-size') === s.fontSize;
+      btn.setAttribute('aria-pressed', match ? 'true' : 'false');
+    });
+
+    // High Contrast
+    if (s.highContrast) {
+      html.setAttribute('data-a11y-contrast', 'high');
+      if (contrastToggle) contrastToggle.setAttribute('aria-checked', 'true');
+    } else {
+      html.removeAttribute('data-a11y-contrast');
+      if (contrastToggle) contrastToggle.setAttribute('aria-checked', 'false');
+    }
+
+    // Dyslexic font
+    if (s.dyslexicFont) {
+      html.setAttribute('data-a11y-font', 'dyslexic');
+      if (fontToggle) fontToggle.setAttribute('aria-checked', 'true');
+    } else {
+      html.removeAttribute('data-a11y-font');
+      if (fontToggle) fontToggle.setAttribute('aria-checked', 'false');
+    }
+
+    // Reduce Motion
+    if (s.reduceMotion) {
+      html.setAttribute('data-a11y-motion', 'reduced');
+      if (motionToggle) motionToggle.setAttribute('aria-checked', 'true');
+    } else {
+      html.removeAttribute('data-a11y-motion');
+      if (motionToggle) motionToggle.setAttribute('aria-checked', 'false');
+    }
+
+    // Underline links
+    if (s.underlineLinks) {
+      html.setAttribute('data-a11y-underline', 'true');
+      if (underlineToggle) underlineToggle.setAttribute('aria-checked', 'true');
+    } else {
+      html.removeAttribute('data-a11y-underline');
+      if (underlineToggle) underlineToggle.setAttribute('aria-checked', 'false');
+    }
+  }
+
+  function openModal() {
+    if (!a11yModal) return;
+    a11yModal.classList.add('is-active');
+    a11yModal.setAttribute('aria-hidden', 'false');
+    if (a11yToggleBtn) a11yToggleBtn.setAttribute('aria-expanded', 'true');
+    if (a11yCloseBtn) a11yCloseBtn.focus();
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    if (!a11yModal) return;
+    a11yModal.classList.remove('is-active');
+    a11yModal.setAttribute('aria-hidden', 'true');
+    if (a11yToggleBtn) {
+      a11yToggleBtn.setAttribute('aria-expanded', 'false');
+      a11yToggleBtn.focus();
+    }
+    document.body.style.overflow = '';
+  }
+
+  if (a11yToggleBtn) {
+    a11yToggleBtn.addEventListener('click', openModal);
+  }
+  if (a11yCloseBtn) {
+    a11yCloseBtn.addEventListener('click', closeModal);
+  }
+  if (a11ySaveCloseBtn) {
+    a11ySaveCloseBtn.addEventListener('click', closeModal);
+  }
+
+  if (a11yModal) {
+    a11yModal.addEventListener('click', (e) => {
+      if (e.target === a11yModal) {
+        closeModal();
+      }
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && a11yModal && a11yModal.classList.contains('is-active')) {
+      closeModal();
+    }
+  });
+
+  sizeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentSettings.fontSize = btn.getAttribute('data-size');
+      applySettings(currentSettings);
+      saveSettings(currentSettings);
+    });
+  });
+
+  if (contrastToggle) {
+    contrastToggle.addEventListener('click', () => {
+      currentSettings.highContrast = !currentSettings.highContrast;
+      applySettings(currentSettings);
+      saveSettings(currentSettings);
+    });
+  }
+
+  if (fontToggle) {
+    fontToggle.addEventListener('click', () => {
+      currentSettings.dyslexicFont = !currentSettings.dyslexicFont;
+      applySettings(currentSettings);
+      saveSettings(currentSettings);
+    });
+  }
+
+  if (motionToggle) {
+    motionToggle.addEventListener('click', () => {
+      currentSettings.reduceMotion = !currentSettings.reduceMotion;
+      applySettings(currentSettings);
+      saveSettings(currentSettings);
+    });
+  }
+
+  if (underlineToggle) {
+    underlineToggle.addEventListener('click', () => {
+      currentSettings.underlineLinks = !currentSettings.underlineLinks;
+      applySettings(currentSettings);
+      saveSettings(currentSettings);
+    });
+  }
+
+  if (a11yResetBtn) {
+    a11yResetBtn.addEventListener('click', () => {
+      currentSettings = { ...defaultSettings };
+      applySettings(currentSettings);
+      saveSettings(currentSettings);
+      showToast('Erişilebilirlik ayarları varsayılana sıfırlandı.');
+    });
+  }
+}
+
+/* ==========================================================================
+   6. Helper Utilities
    ========================================================================== */
 function showToast(message, type = 'success') {
   let toastContainer = document.querySelector('.toast-container');
@@ -248,6 +437,8 @@ function showToast(message, type = 'success') {
 
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
+  toast.setAttribute('role', 'alert');
+  toast.setAttribute('aria-live', 'assertive');
   toast.innerHTML = message;
   toastContainer.appendChild(toast);
 
@@ -269,3 +460,4 @@ function escapeHtml(text) {
   };
   return String(text).replace(/[&<>"']/g, (m) => map[m]);
 }
+

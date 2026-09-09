@@ -1,0 +1,81 @@
+<!-- Accessibility Controls Modal / Drawer -->
+<div id="a11y-modal" class="a11y-modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="a11y-modal-title">
+  <div class="a11y-modal-card">
+    <div class="a11y-modal-header">
+      <div class="a11y-modal-title-wrap">
+        <span class="a11y-header-icon" aria-hidden="true">♿</span>
+        <h2 id="a11y-modal-title" class="a11y-modal-title">Erişilebilirlik Seçenekleri</h2>
+      </div>
+      <button type="button" id="a11y-modal-close" class="btn-icon btn-sm a11y-close-btn" aria-label="Erişilebilirlik panelini kapat">
+        ✕
+      </button>
+    </div>
+
+    <div class="a11y-modal-body">
+      <!-- Font Size Scaling -->
+      <div class="a11y-option-group">
+        <label class="a11y-group-label" id="a11y-font-size-label">
+          <span aria-hidden="true">🔍</span> Metin Boyutu
+        </label>
+        <div class="a11y-btn-group" role="group" aria-labelledby="a11y-font-size-label">
+          <button type="button" class="a11y-btn a11y-size-btn" data-size="normal" aria-pressed="true">Normal (%100)</button>
+          <button type="button" class="a11y-btn a11y-size-btn" data-size="large" aria-pressed="false">Büyük (%115)</button>
+          <button type="button" class="a11y-btn a11y-size-btn" data-size="xlarge" aria-pressed="false">Çok Büyük (%130)</button>
+        </div>
+      </div>
+
+      <!-- High Contrast Mode -->
+      <div class="a11y-option-item">
+        <div class="a11y-option-info">
+          <span class="a11y-option-title"><span aria-hidden="true">🌓</span> Yüksek Kontrast Modu</span>
+          <span class="a11y-option-desc">Renk kontrastını ve kenarlık belirginliğini maksimum düzeye çıkarır.</span>
+        </div>
+        <button type="button" id="a11y-contrast-toggle" class="a11y-toggle-btn" role="switch" aria-checked="false" aria-label="Yüksek kontrast modunu aç veya kapat">
+          <span class="a11y-toggle-track"></span>
+        </button>
+      </div>
+
+      <!-- Dyslexia Friendly Font -->
+      <div class="a11y-option-item">
+        <div class="a11y-option-info">
+          <span class="a11y-option-title"><span aria-hidden="true">📖</span> Disleksi Dostu Yazı Tipi</span>
+          <span class="a11y-option-desc">Harf ayırt ediciliği yüksek, kolay okunabilir yazı karakteri uygular.</span>
+        </div>
+        <button type="button" id="a11y-font-toggle" class="a11y-toggle-btn" role="switch" aria-checked="false" aria-label="Disleksi dostu yazı tipini aç veya kapat">
+          <span class="a11y-toggle-track"></span>
+        </button>
+      </div>
+
+      <!-- Reduce Motion -->
+      <div class="a11y-option-item">
+        <div class="a11y-option-info">
+          <span class="a11y-option-title"><span aria-hidden="true">⏸️</span> Hareket & Animasyonları Azalt</span>
+          <span class="a11y-option-desc">Vestibüler hassasiyet ve dikkat dağınıklığını önlemek için animasyonları kapatır.</span>
+        </div>
+        <button type="button" id="a11y-motion-toggle" class="a11y-toggle-btn" role="switch" aria-checked="false" aria-label="Animasyon ve hareketleri azalt">
+          <span class="a11y-toggle-track"></span>
+        </button>
+      </div>
+
+      <!-- Underline Links -->
+      <div class="a11y-option-item">
+        <div class="a11y-option-info">
+          <span class="a11y-option-title"><span aria-hidden="true">🔗</span> Bağlantıları Altı Çizgili Yap</span>
+          <span class="a11y-option-desc">Tüm tıklanabilir bağlantıların altına belirgin çizgi ekler.</span>
+        </div>
+        <button type="button" id="a11y-underline-toggle" class="a11y-toggle-btn" role="switch" aria-checked="false" aria-label="Bağlantıların altını çiz">
+          <span class="a11y-toggle-track"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="a11y-modal-footer">
+      <button type="button" id="a11y-reset-btn" class="btn btn-secondary btn-sm" aria-label="Erişilebilirlik ayarlarını varsayılana döndür">
+        🔄 Varsayılana Sıfırla
+      </button>
+      <button type="button" id="a11y-save-close-btn" class="btn btn-primary btn-sm" aria-label="Ayarları uygula ve paneli kapat">
+        Kapat
+      </button>
+    </div>
+  </div>
+</div>

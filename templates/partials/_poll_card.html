@@ -48,7 +48,7 @@
       {% if user_has_voted or poll.is_expired %}
         <!-- RESULTS VIEW (Visible after voting or if expired) -->
         {% with current_vote=poll|get_user_vote:request %}
-          <div class="poll-results-list">
+          <div class="poll-results-list" role="region" aria-label="Anket Sonuçları" aria-live="polite">
             {% for choice in poll.choices.all %}
               <div class="result-item {% if current_vote and current_vote.choice_id == choice.id %}user-selected{% endif %}">
                 <div class="result-item-bar" style="width: {{ choice|percentage }}%"></div>
@@ -70,12 +70,15 @@
         <!-- VOTING VIEW (Choices shown, results hidden until vote) -->
         <form action="{% url 'polls:vote' poll_id=poll.id %}" method="POST" class="poll-choices-form">
           {% csrf_token %}
-          <div class="choices-list">
+          <div class="choices-list" role="group" aria-label="Anket Seçenekleri">
             {% for choice in poll.choices.all %}
               <div class="choice-option">
-                <button type="submit" name="choice" value="{{ choice.id }}" class="choice-btn">
-                  <span><span class="choice-circle"></span>{{ choice.text }}</span>
-                  <span style="opacity: 0.6; font-size: 0.85rem;">Oy Ver &rarr;</span>
+                <button type="submit" name="choice" value="{{ choice.id }}" class="choice-btn" aria-label="Oy Ver: {{ choice.text }}">
+                  <span class="choice-text">
+                    <span class="choice-circle" aria-hidden="true"></span>
+                    <span class="choice-label">{{ choice.text }}</span>
+                  </span>
+                  <span class="choice-arrow" aria-hidden="true">Oy Ver &rarr;</span>
                 </button>
               </div>
             {% endfor %}
