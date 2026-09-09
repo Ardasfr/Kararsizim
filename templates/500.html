@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Sunucu Hatası (500) — Kararsızım{% endblock %}
+
+{% block content %}
+<div style="min-height: 55vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem;">
+  <div class="card" style="max-width: 520px; width: 100%; text-align: center; padding: 3rem 2rem; position: relative; overflow: hidden;">
+    <!-- Background glow -->
+    <div style="position: absolute; top: -50px; left: 50%; transform: translateX(-50%); width: 180px; height: 180px; background: radial-gradient(circle, var(--accent-2-soft) 0%, transparent 70%); pointer-events: none;"></div>
+
+    <div style="font-size: 4.5rem; line-height: 1; margin-bottom: 1rem; animation: pulseGear 2.5s ease-in-out infinite;">
+      ⚙️
+    </div>
+
+    <span style="font-family: var(--font-display); font-size: 0.9rem; font-weight: 800; color: var(--accent-2); text-transform: uppercase; letter-spacing: 0.1em; display: inline-block; margin-bottom: 0.5rem; background: var(--accent-2-soft); padding: 0.25rem 0.75rem; border-radius: var(--border-radius-pill);">
+      Hata 500
+    </span>
+
+    <h1 style="font-family: var(--font-display); font-size: 1.85rem; font-weight: 900; margin-bottom: 0.75rem; color: var(--text-primary);">
+      Sunucularımız da kararsız kaldı!
+    </h1>
+
+    <p style="color: var(--text-secondary); font-size: 0.975rem; line-height: 1.6; margin-bottom: 2rem;">
+      Beklenmedik teknik bir aksaklık meydana geldi. Mühendislerimiz durumu inceliyor, lütfen birkaç saniye sonra tekrar dene.
+    </p>
+
+    <div style="display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap;">
+      <a href="javascript:location.reload();" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">
+        🔄 Sayfayı Yenile
+      </a>
+      <a href="{% url 'polls:feed' %}" class="btn btn-secondary" style="padding: 0.75rem 1.5rem;">
+        🏠 Ana Akışa Dön
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes pulseGear {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.08); }
+}
+</style>
+{% endblock %}
