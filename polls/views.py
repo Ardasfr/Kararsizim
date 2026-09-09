@@ -145,8 +145,14 @@ def poll_vote(request, poll_id):
         messages.warning(request, error_msg)
         return redirect('polls:results', poll_id=poll_id)
 
-    # Çift oy kontrolü
-    if poll.has_user_voted(user=user, session_key=session_key):
+    # Çift oy kontrolü (Hızlı exists kontrolü)
+    has_voted = False
+    if user and user.is_authenticated:
+        has_voted = poll.votes.filter(user=user).exists()
+    elif session_key:
+        has_voted = poll.votes.filter(session_key=session_key).exists()
+
+    if has_voted:
         error_msg = 'Bu ankette daha önce oy kullandınız!'
         if is_ajax:
             return JsonResponse({'success': False, 'error': error_msg, 'already_voted': True}, status=400)
@@ -170,11 +176,13 @@ def poll_vote(request, poll_id):
         return redirect('polls:results', poll_id=poll_id)
 
     if is_ajax:
-        # AJAX yanıtı: güncel seçenek yüzdeleri ve oy sayıları
-        total = poll.total_votes
+        # AJAX yanıtı: TEK sorguda seçenekleri ve oy sayılarını getir (N+1 sorgusunu önler)
+        choices_qs = poll.choices.annotate(num_votes=Count('votes')).order_by('order', 'id')
+        choices_list = list(choices_qs)
+        total = sum(c.num_votes for c in choices_list)
         choices_data = []
-        for c in poll.choices.all():
-            cnt = c.vote_count
+        for c in choices_list:
+            cnt = c.num_votes
             pct = round((cnt / total) * 100, 1) if total > 0 else 0
             choices_data.append({
                 'id': str(c.id),

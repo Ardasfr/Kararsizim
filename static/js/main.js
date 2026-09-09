@@ -51,6 +51,18 @@ function initAjaxVoting() {
       e.preventDefault();
 
       const submitter = e.submitter || document.activeElement;
+      const choicesList = form.querySelector('.choices-list');
+
+      // Instant UI Feedback (0ms delay)
+      if (submitter && submitter.classList.contains('choice-btn')) {
+        submitter.classList.add('is-submitting');
+        const arrow = submitter.querySelector('.choice-arrow');
+        if (arrow) arrow.textContent = '⏳';
+      }
+      if (choicesList) {
+        choicesList.classList.add('is-voting');
+      }
+
       let formData;
       try {
         formData = new FormData(form, submitter);
@@ -78,6 +90,11 @@ function initAjaxVoting() {
           renderPollResults(form.closest('.poll-card'), data);
           showToast(data.message || 'Oyunuz kaydedildi! 🎉');
         } else {
+          if (submitter) submitter.classList.remove('is-submitting');
+          if (choicesList) choicesList.classList.remove('is-voting');
+          const arrow = submitter ? submitter.querySelector('.choice-arrow') : null;
+          if (arrow) arrow.textContent = '→';
+
           showToast(data.error || 'Bir hata oluştu.', 'error');
           if (data.already_voted) {
             setTimeout(() => window.location.reload(), 1200);

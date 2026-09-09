@@ -715,6 +715,41 @@ a:hover {
   color: var(--accent-1);
 }
 
+/* Submitting & Immediate Feedback States */
+.choice-btn.is-submitting {
+  border-color: var(--accent-1) !important;
+  background-color: var(--accent-1-soft) !important;
+  color: var(--accent-1) !important;
+  box-shadow: 0 0 0 3px var(--accent-1-soft) !important;
+  pointer-events: none;
+  cursor: wait;
+}
+
+.choice-btn.is-submitting .choice-circle {
+  border-color: var(--accent-1) !important;
+  border-top-color: transparent !important;
+  background-color: transparent !important;
+  animation: choice-spinner 0.65s linear infinite !important;
+}
+
+.choice-btn.is-submitting .choice-arrow {
+  opacity: 1;
+  color: var(--accent-1);
+}
+
+.choices-list.is-voting .choice-btn:not(.is-submitting) {
+  opacity: 0.45;
+  pointer-events: none;
+  filter: grayscale(0.4);
+  cursor: not-allowed;
+}
+
+@keyframes choice-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Results State (After voting) */
 .poll-results-list {
   display: flex;
