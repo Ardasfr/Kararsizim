@@ -108,6 +108,11 @@ STORAGES = {
     },
 }
 
+# WhiteNoise configuration
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_MANIFEST_STRICT = False
+
+
 # Authentication URLs
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'polls:feed'

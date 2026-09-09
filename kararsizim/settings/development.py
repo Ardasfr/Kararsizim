@@ -1,5 +1,8 @@
+import os
 from .base import *
 
-DEBUG = True
+# Respect DEBUG from .env
+DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 ALLOWED_HOSTS = ['*']
 INTERNAL_IPS = ['127.0.0.1']
+
