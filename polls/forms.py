@@ -1,5 +1,14 @@
+import datetime
+from django.utils import timezone
 from django import forms
 from .models import Poll, Choice
+
+DURATION_CHOICES = [
+    ('0', 'Süresiz (İstediğin kadar açık kalsın)'),
+    ('1', '24 Saat (1 Gün)'),
+    ('3', '3 Gün'),
+    ('7', '1 Hafta (7 Gün)'),
+]
 
 class PollCreateForm(forms.ModelForm):
     question = forms.CharField(
@@ -13,9 +22,26 @@ class PollCreateForm(forms.ModelForm):
         label='Kararsız Kaldığın Konu'
     )
 
+    duration = forms.ChoiceField(
+        choices=DURATION_CHOICES,
+        required=False,
+        initial='0',
+        widget=forms.Select(attrs={
+            'class': 'form-input',
+        }),
+        label='Anket Süresi'
+    )
+
     class Meta:
         model = Poll
         fields = ['question']
+
+    def calculate_expires_at(self):
+        duration = self.cleaned_data.get('duration', '0')
+        days = int(duration) if duration and duration.isdigit() else 0
+        if days > 0:
+            return timezone.now() + datetime.timedelta(days=days)
+        return None
 
     def clean(self):
         cleaned_data = super().clean()

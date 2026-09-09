@@ -91,3 +91,53 @@ class KararsizimTests(TestCase):
         self.assertTrue(data['success'])
         self.assertEqual(data['total_votes'], 1)
         self.assertEqual(data['voted_choice_id'], str(self.c2.id))
+
+    def test_search_and_pagination(self):
+        # Arama testi
+        feed_url = reverse('polls:feed')
+        resp_found = self.client.get(feed_url, {'q': 'telefon'})
+        self.assertEqual(resp_found.status_code, 200)
+        self.assertContains(resp_found, 'Hangi telefonu tercih edersin?')
+
+        resp_not_found = self.client.get(feed_url, {'q': 'bulunmayacakkelimexyz'})
+        self.assertEqual(resp_not_found.status_code, 200)
+        self.assertNotContains(resp_not_found, 'Hangi telefonu tercih edersin?')
+
+        # Sayfalama testi (5'ten fazla anket olustur)
+        for i in range(6):
+            p = Poll.objects.create(author=self.user1, question=f'Test Soru {i}')
+            Choice.objects.create(poll=p, text='Secenek 1')
+            Choice.objects.create(poll=p, text='Secenek 2')
+
+        resp_page1 = self.client.get(feed_url)
+        self.assertEqual(len(resp_page1.context['polls']), 5)
+
+        resp_page2 = self.client.get(feed_url, {'page': 2})
+        self.assertTrue(len(resp_page2.context['polls']) >= 2)
+
+    def test_expired_poll_behavior(self):
+        import datetime
+        from django.utils import timezone
+
+        # 1 saat once suresi dolmus anket
+        expired_poll = Poll.objects.create(
+            author=self.user1,
+            question='Süresi dolmuş anket',
+            expires_at=timezone.now() - datetime.timedelta(hours=1)
+        )
+        exp_c1 = Choice.objects.create(poll=expired_poll, text='Eski 1')
+        exp_c2 = Choice.objects.create(poll=expired_poll, text='Eski 2')
+
+        self.assertTrue(expired_poll.is_expired)
+
+        # Suresi dolmus ankete oy vermeyi dene -> Hata vermeli
+        vote_url = reverse('polls:vote', kwargs={'poll_id': expired_poll.id})
+        resp = self.client.post(vote_url, {'choice': str(exp_c1.id)}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(resp.status_code, 400)
+        self.assertTrue(resp.json().get('is_expired'))
+
+        # Suresi dolmus anketin sonuclarini oy vermeden gorebilmeli
+        results_url = reverse('polls:results', kwargs={'poll_id': expired_poll.id})
+        res_resp = self.client.get(results_url)
+        self.assertEqual(res_resp.status_code, 200)
+        self.assertContains(res_resp, 'Eski 1')

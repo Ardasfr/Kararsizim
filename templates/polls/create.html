@@ -37,6 +37,15 @@
       <span class="form-hint">Maksimum 300 karakter. Net ve anlaşılır bir soru sorun.</span>
     </div>
 
+    <!-- Anket Süresi -->
+    <div class="form-group">
+      <label for="{{ form.duration.id_for_label }}" class="form-label">
+        Anket Süresi
+      </label>
+      {{ form.duration }}
+      <span class="form-hint">Belirlenen süre dolduğunda anket otomatik olarak kapanır ve sonuçlar sabitlenir.</span>
+    </div>
+
     <!-- Seçenekler -->
     <div class="form-group">
       <label class="form-label">

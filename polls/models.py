@@ -16,6 +16,7 @@ class Poll(models.Model):
         help_text='Kararsız kaldığınız soruyu girin (en fazla 300 karakter).'
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Oluşturulma Tarihi')
+    expires_at = models.DateTimeField(null=True, blank=True, verbose_name='Sona Erme Tarihi')
     is_active = models.BooleanField(default=True, verbose_name='Aktif mi?')
 
     class Meta:
@@ -25,6 +26,29 @@ class Poll(models.Model):
 
     def __str__(self):
         return self.question
+
+    @property
+    def is_expired(self):
+        if self.expires_at:
+            from django.utils import timezone
+            return timezone.now() > self.expires_at
+        return False
+
+    @property
+    def time_left_display(self):
+        if not self.expires_at:
+            return None
+        from django.utils import timezone
+        if self.is_expired:
+            return 'Süresi Doldu'
+        diff = self.expires_at - timezone.now()
+        if diff.days > 0:
+            return f'{diff.days} gün kaldı'
+        hours = diff.seconds // 3600
+        if hours > 0:
+            return f'{hours} saat kaldı'
+        minutes = max(1, (diff.seconds % 3600) // 60)
+        return f'{minutes} dk kaldı'
 
     @property
     def total_votes(self):

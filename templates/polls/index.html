@@ -16,12 +16,27 @@
 </section>
 
 <section class="feed-section">
+  <!-- Search Bar -->
+  <form method="GET" action="{% url 'polls:feed' %}" class="search-form" style="margin-bottom: 1.5rem;">
+    <div style="position: relative; display: flex; align-items: center;">
+      <span style="position: absolute; left: 1rem; font-size: 1.1rem; opacity: 0.6; pointer-events: none;">🔍</span>
+      <input type="text" name="q" value="{{ q }}" placeholder="Aklındaki konuyu ara... (Örn: telefon, tatil, araba)" class="form-input" style="padding-left: 2.8rem; padding-right: {% if q %}2.8rem{% else %}1rem{% endif %}; border-radius: var(--border-radius-pill);" autocomplete="off">
+      {% if q %}
+        <a href="{% url 'polls:feed' %}" style="position: absolute; right: 1rem; font-size: 1.25rem; color: var(--text-muted); text-decoration: none;" title="Aramayı temizle">&times;</a>
+      {% endif %}
+    </div>
+  </form>
+
   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
     <h2 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 800;">
-      🔥 Güncel Anketler
+      {% if q %}
+        🔎 "{{ q }}" Arama Sonuçları
+      {% else %}
+        🔥 Güncel Anketler
+      {% endif %}
     </h2>
     <span style="font-size: 0.85rem; color: var(--text-muted);">
-      En yeniden eskiye
+      Toplam {{ total_count }} anket
     </span>
   </div>
 
@@ -31,16 +46,61 @@
         {% include 'partials/_poll_card.html' with poll=poll %}
       {% endfor %}
     </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <nav style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 2rem;" aria-label="Sayfalama">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
+            &larr; Önceki
+          </a>
+        {% else %}
+          <span class="btn btn-secondary btn-sm" style="opacity: 0.4; cursor: not-allowed;">
+            &larr; Önceki
+          </span>
+        {% endif %}
+
+        <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary);">
+          {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
+            Sonraki &rarr;
+          </a>
+        {% else %}
+          <span class="btn btn-secondary btn-sm" style="opacity: 0.4; cursor: not-allowed;">
+            Sonraki &rarr;
+          </span>
+        {% endif %}
+      </nav>
+    {% endif %}
+
   {% else %}
     <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
-      <div style="font-size: 3rem; margin-bottom: 1rem;">🗳️</div>
-      <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Henüz bir anket yok</h3>
-      <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
-        İlk kararsız kalan sen ol ve topluluğun fikrini öğrenmeye başla!
-      </p>
-      <a href="{% url 'polls:create' %}" class="btn btn-primary">
-        İlk Anketi Başlat
-      </a>
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+      {% if q %}
+        <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Aramana uygun anket bulunamadı</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+          "{{ q }}" konusunda henüz kimse kararsız kalmamış. Sen sormak ister misin?
+        </p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center;">
+          <a href="{% url 'polls:feed' %}" class="btn btn-secondary">
+            Tüm Anketleri Gör
+          </a>
+          <a href="{% url 'polls:create' %}" class="btn btn-primary">
+            Bu Konuda Anket Aç
+          </a>
+        </div>
+      {% else %}
+        <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Henüz bir anket yok</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+          İlk kararsız kalan sen ol ve topluluğun fikrini öğrenmeye başla!
+        </p>
+        <a href="{% url 'polls:create' %}" class="btn btn-primary">
+          İlk Anketi Başlat
+        </a>
+      {% endif %}
     </div>
   {% endif %}
 </section>

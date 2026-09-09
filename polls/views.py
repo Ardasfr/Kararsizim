@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseForbidden
 from django.db import IntegrityError, transaction
+from django.core.paginator import Paginator
 from .models import Poll, Choice, Vote
 from .forms import PollCreateForm
 
@@ -22,11 +23,25 @@ def ensure_session(request):
     return request.session.session_key
 
 def poll_feed(request):
-    """Ana sayfa: Tüm anketlerin ters kronolojik feed'i."""
+    """Ana sayfa: Arama ve Django Paginator ile anket akışı."""
     ensure_session(request)
-    polls = Poll.objects.filter(is_active=True).select_related('author').prefetch_related('choices', 'votes')
+    polls_qs = Poll.objects.filter(is_active=True).select_related('author').prefetch_related('choices', 'votes')
+
+    # Arama filtresi
+    q = request.GET.get('q', '').strip()
+    if q:
+        polls_qs = polls_qs.filter(question__icontains=q)
+
+    # Sayfalama (Her sayfada 5 anket)
+    paginator = Paginator(polls_qs, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'polls/index.html', {
-        'polls': polls,
+        'page_obj': page_obj,
+        'polls': page_obj.object_list,
+        'q': q,
+        'total_count': paginator.count,
     })
 
 def poll_detail(request, poll_id):
@@ -40,7 +55,7 @@ def poll_detail(request, poll_id):
     user = request.user if request.user.is_authenticated else None
     session_key = request.session.session_key
     user_vote = poll.user_vote(user=user, session_key=session_key)
-    has_voted = user_vote is not None
+    has_voted = (user_vote is not None) or poll.is_expired
 
     return render(request, 'polls/detail.html', {
         'poll': poll,
@@ -49,14 +64,15 @@ def poll_detail(request, poll_id):
     })
 
 def poll_results(request, poll_id):
-    """Sonuçlar sayfası. Kural: Oy vermeyen kullanıcı sonuçları göremez!"""
+    """Sonuçlar sayfası. Süresi dolmuş anketlerin sonuçları herkese açıktır."""
     ensure_session(request)
     poll = get_object_or_404(Poll.objects.prefetch_related('choices__votes', 'votes'), id=poll_id, is_active=True)
     user = request.user if request.user.is_authenticated else None
     session_key = request.session.session_key
     user_vote = poll.user_vote(user=user, session_key=session_key)
     
-    if not user_vote:
+    # Süresi dolmamışsa ve oy verilmemişse engelle
+    if not poll.is_expired and not user_vote:
         messages.warning(request, 'Sonuçları görebilmek için önce oy vermelisiniz!')
         return redirect('polls:detail', poll_id=poll.id)
 
@@ -88,6 +104,14 @@ def poll_vote(request, poll_id):
     user = request.user if request.user.is_authenticated else None
     session_key = request.session.session_key
     ip_address = get_client_ip(request)
+
+    # Süre kontrolü
+    if poll.is_expired:
+        error_msg = 'Bu anketin süresi dolmuştur, artık oy kullanılamaz.'
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': error_msg, 'is_expired': True}, status=400)
+        messages.warning(request, error_msg)
+        return redirect('polls:results', poll_id=poll_id)
 
     # Çift oy kontrolü
     if poll.has_user_voted(user=user, session_key=session_key):
@@ -148,6 +172,7 @@ def poll_create(request):
             with transaction.atomic():
                 poll = form.save(commit=False)
                 poll.author = request.user
+                poll.expires_at = form.calculate_expires_at()
                 poll.save()
 
                 # Seçenekleri kaydet

@@ -10,7 +10,19 @@
       </div>
     </div>
 
-    <div class="poll-header-actions">
+    <div class="poll-header-actions" style="display: flex; align-items: center; gap: 0.5rem;">
+      {% if poll.expires_at %}
+        {% if poll.is_expired %}
+          <span style="font-size: 0.75rem; font-weight: 700; background: var(--accent-2-soft); color: var(--accent-2); padding: 0.2rem 0.6rem; border-radius: var(--border-radius-pill);">
+            ⌛ Süresi Doldu
+          </span>
+        {% else %}
+          <span style="font-size: 0.75rem; font-weight: 700; background: var(--accent-1-soft); color: var(--accent-1); padding: 0.2rem 0.6rem; border-radius: var(--border-radius-pill);">
+            ⏱️ {{ poll.time_left_display }}
+          </span>
+        {% endif %}
+      {% endif %}
+
       {% if user.is_authenticated and user == poll.author %}
         <a href="{% url 'polls:delete' poll_id=poll.id %}" class="btn btn-sm btn-outline" style="border-color: var(--accent-2); color: var(--accent-2);" title="Anketi Sil">
           🗑️ Sil
@@ -27,8 +39,8 @@
   <!-- Body: Voting or Results -->
   <div class="poll-body">
     {% with user_has_voted=poll|has_voted:request %}
-      {% if user_has_voted %}
-        <!-- RESULTS VIEW (Only visible after voting) -->
+      {% if user_has_voted or poll.is_expired %}
+        <!-- RESULTS VIEW (Visible after voting or if expired) -->
         {% with current_vote=poll|get_user_vote:request %}
           <div class="poll-results-list">
             {% for choice in poll.choices.all %}

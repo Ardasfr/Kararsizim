@@ -50,6 +50,13 @@ def logout_view(request):
 @login_required
 def profile_view(request):
     user_polls = request.user.polls.all().order_by('-created_at')
+    total_votes_received = sum(p.total_votes for p in user_polls)
+    active_polls_count = sum(1 for p in user_polls if not p.is_expired)
+    expired_polls_count = sum(1 for p in user_polls if p.is_expired)
+
     return render(request, 'accounts/profile.html', {
         'user_polls': user_polls,
+        'total_votes_received': total_votes_received,
+        'active_polls_count': active_polls_count,
+        'expired_polls_count': expired_polls_count,
     })
