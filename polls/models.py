@@ -78,6 +78,23 @@ class Poll(models.Model):
     def total_votes(self):
         return self.votes.count()
 
+    @property
+    def leading_choice(self):
+        """Ankete verilen oylar içinde en çok oyu alan seçeneği döndürür."""
+        choices = list(self.choices.all())
+        if not choices:
+            return None
+        max_votes = -1
+        leader = None
+        for c in choices:
+            cnt = c.vote_count
+            if cnt > max_votes:
+                max_votes = cnt
+                leader = c
+        if max_votes <= 0:
+            return None
+        return leader
+
     def user_vote(self, user=None, session_key=None):
         """Kullanıcının veya anonim oturumun bu ankette kullandığı oyu döndürür."""
         if user and user.is_authenticated:

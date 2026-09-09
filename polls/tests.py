@@ -97,11 +97,11 @@ class KararsizimTests(TestCase):
         feed_url = reverse('polls:feed')
         resp_found = self.client.get(feed_url, {'q': 'telefon'})
         self.assertEqual(resp_found.status_code, 200)
-        self.assertContains(resp_found, 'Hangi telefonu tercih edersin?')
+        self.assertIn(self.poll, resp_found.context['polls'])
 
         resp_not_found = self.client.get(feed_url, {'q': 'bulunmayacakkelimexyz'})
         self.assertEqual(resp_not_found.status_code, 200)
-        self.assertNotContains(resp_not_found, 'Hangi telefonu tercih edersin?')
+        self.assertNotIn(self.poll, resp_not_found.context['polls'])
 
         # Sayfalama testi (5'ten fazla anket olustur)
         for i in range(6):
@@ -159,8 +159,8 @@ class KararsizimTests(TestCase):
         # 1. Kategori filtre testi
         feed_url = reverse('polls:feed')
         resp_tekno = self.client.get(feed_url, {'category': 'tekno-test'})
-        self.assertContains(resp_tekno, 'Hangi laptop?')
-        self.assertNotContains(resp_tekno, 'Hangi corba?')
+        self.assertIn(p_tekno, resp_tekno.context['polls'])
+        self.assertNotIn(p_yemek, resp_tekno.context['polls'])
 
         # 2. Trendler sekmesi testi: p_tekno'ya 1 oy verelim
         Vote.objects.create(poll=p_tekno, choice=c_win, session_key='trend_sess_1')

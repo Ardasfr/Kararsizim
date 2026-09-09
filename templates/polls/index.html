@@ -1,135 +1,227 @@
 {% extends 'base.html' %}
+{% load poll_extras %}
 
-{% block title %}Kararsızım — Günün Kararları & Topluluk Anketleri{% endblock %}
+{% block title %}Kararsızım — Günün Kararları, Trendler & Topluluk Anketleri{% endblock %}
 
 {% block content %}
-<section class="hero-section">
-  <h1 class="hero-title">Kararsız mı kaldın? 🤔</h1>
-  <p class="hero-subtitle">
-    İki seçenek arasında mı sıkıştın? Topluluğa sor, hızlıca fikir al ve kararını kolayca ver!
-  </p>
-  <div>
-    <a href="{% url 'polls:create' %}" class="btn btn-primary">
-      ✨ Kararsızlığını Paylaş
-    </a>
-  </div>
-</section>
+<div class="social-feed-grid">
+  <!-- SOL/ORTA SÜTUN: Ana Akış -->
+  <main class="social-main-column">
 
-<section class="feed-section">
-  <!-- Feed Tabs: En Yeniler vs Trendler -->
-  <div class="feed-tabs-wrapper">
-    <a href="?tab=latest{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="feed-tab {% if tab == 'latest' %}active{% endif %}">
-      <span>🔥</span> En Yeniler
-    </a>
-    <a href="?tab=trending{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="feed-tab {% if tab == 'trending' %}active{% endif %}">
-      <span>⚡</span> Trendler
-    </a>
-  </div>
-
-  <!-- Category Pills -->
-  <div class="category-scroll-container">
-    <a href="?{% if tab %}&tab={{ tab }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="category-pill {% if not current_category %}active{% endif %}">
-      Tümü
-    </a>
-    {% for cat in categories %}
-      <a href="?category={{ cat.slug }}{% if tab %}&tab={{ tab }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="category-pill {% if current_category and current_category.slug == cat.slug %}active{% endif %}">
-        <span>{{ cat.icon }}</span> {{ cat.name }}
+    <!-- Hızlı Soru Sorma Davet Kutusu (Twitter/Reddit tarzı) -->
+    <div class="ask-prompt-card">
+      <div class="author-avatar" style="width: 44px; height: 44px; font-size: 1.1rem; flex-shrink: 0;">
+        {% if user.is_authenticated %}{{ user.username|slice:":1"|upper }}{% else %}🤔{% endif %}
+      </div>
+      <a href="{% url 'polls:create' %}" class="ask-prompt-input">
+        <span>
+          {% if user.is_authenticated %}
+            Bugün neye karar veremiyorsun, <strong>@{{ user.username }}</strong>?
+          {% else %}
+            Kararsız kaldığın bir konu mu var? Topluluğa sor...
+          {% endif %}
+        </span>
+        <span class="btn btn-primary btn-sm" style="pointer-events: none;">
+          Anket Aç &rarr;
+        </span>
       </a>
-    {% endfor %}
-  </div>
-
-  <!-- Search Bar -->
-  <form method="GET" action="{% url 'polls:feed' %}" class="search-form" style="margin-bottom: 1.5rem;">
-    {% if tab %}<input type="hidden" name="tab" value="{{ tab }}">{% endif %}
-    {% if current_category %}<input type="hidden" name="category" value="{{ current_category.slug }}">{% endif %}
-    <div style="position: relative; display: flex; align-items: center;">
-      <span style="position: absolute; left: 1rem; font-size: 1.1rem; opacity: 0.6; pointer-events: none;">🔍</span>
-      <input type="text" name="q" value="{{ q }}" placeholder="Aklındaki konuyu ara... (Örn: telefon, tatil, araba)" class="form-input" style="padding-left: 2.8rem; padding-right: {% if q %}2.8rem{% else %}1rem{% endif %}; border-radius: var(--border-radius-pill);" autocomplete="off">
-      {% if q %}
-        <a href="?{% if tab %}&tab={{ tab }}{% endif %}{% if current_category %}&category={{ current_category.slug }}{% endif %}" style="position: absolute; right: 1rem; font-size: 1.25rem; color: var(--text-muted); text-decoration: none;" title="Aramayı temizle">&times;</a>
-      {% endif %}
     </div>
-  </form>
 
-  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
-    <h2 style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800;">
-      {% if q %}
-        🔎 "{{ q }}" Arama Sonuçları
-      {% elif current_category %}
-        {{ current_category.icon }} {{ current_category.name }} Anketleri
-      {% elif tab == 'trending' %}
-        ⚡ En Çok Oy Alan Trendler
-      {% else %}
-        🔥 Güncel Anketler
-      {% endif %}
-    </h2>
-    <span style="font-size: 0.85rem; color: var(--text-muted);">
-      {{ total_count }} anket
-    </span>
-  </div>
+    <!-- Feed Sekmeleri: En Yeniler vs Trendler -->
+    <div class="feed-tabs-wrapper">
+      <a href="?tab=latest{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="feed-tab {% if tab == 'latest' %}active{% endif %}">
+        <span>🔥</span> En Yeniler
+      </a>
+      <a href="?tab=trending{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="feed-tab {% if tab == 'trending' %}active{% endif %}">
+        <span>⚡</span> Trendler
+      </a>
+    </div>
 
-  {% if polls %}
-    <div class="polls-feed">
-      {% for poll in polls %}
-        {% include 'partials/_poll_card.html' with poll=poll %}
+    <!-- Kategori Filtre Hapları -->
+    <div class="category-scroll-container">
+      <a href="?{% if tab %}&tab={{ tab }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="category-pill {% if not current_category %}active{% endif %}">
+        Tümü
+      </a>
+      {% for cat in categories %}
+        <a href="?category={{ cat.slug }}{% if tab %}&tab={{ tab }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="category-pill {% if current_category and current_category.slug == cat.slug %}active{% endif %}">
+          <span>{{ cat.icon }}</span> {{ cat.name }}
+        </a>
       {% endfor %}
     </div>
 
-    <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
-      <nav style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 2rem;" aria-label="Sayfalama">
-        {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}{% if tab %}&tab={{ tab }}{% endif %}{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
-            &larr; Önceki
-          </a>
+    <!-- Başlık & Arama Durumu -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+      <h2 style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+        {% if q %}
+          <span>🔎</span> "{{ q }}" ile İlgili Anketler
+        {% elif current_category %}
+          <span>{{ current_category.icon }}</span> {{ current_category.name }}
+        {% elif tab == 'trending' %}
+          <span>⚡</span> En Çok Tartışılan Trendler
         {% else %}
-          <span class="btn btn-secondary btn-sm" style="opacity: 0.4; cursor: not-allowed;">
-            &larr; Önceki
-          </span>
+          <span>🔥</span> Son Açılan Anketler
         {% endif %}
+      </h2>
+      <span style="font-size: 0.825rem; color: var(--text-muted); font-weight: 600;">
+        {{ total_count }} anket
+      </span>
+    </div>
 
-        <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary);">
-          {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-        </span>
+    <!-- Anket Listesi -->
+    {% if polls %}
+      <div class="polls-feed">
+        {% for poll in polls %}
+          {% include 'partials/_poll_card.html' with poll=poll %}
+        {% endfor %}
+      </div>
 
-        {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}{% if tab %}&tab={{ tab }}{% endif %}{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
-            Sonraki &rarr;
-          </a>
+      <!-- Sayfalama -->
+      {% if page_obj.has_other_pages %}
+        <nav style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin: 2rem 0;" aria-label="Sayfalama">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if tab %}&tab={{ tab }}{% endif %}{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
+              &larr; Önceki
+            </a>
+          {% else %}
+            <span class="btn btn-secondary btn-sm" style="opacity: 0.4; cursor: not-allowed;">
+              &larr; Önceki
+            </span>
+          {% endif %}
+
+          <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-secondary);">
+            {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+          </span>
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if tab %}&tab={{ tab }}{% endif %}{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
+              Sonraki &rarr;
+            </a>
+          {% else %}
+            <span class="btn btn-secondary btn-sm" style="opacity: 0.4; cursor: not-allowed;">
+              Sonraki &rarr;
+            </span>
+          {% endif %}
+        </nav>
+      {% endif %}
+
+    {% else %}
+      <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+        {% if q %}
+          <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Aradığın kriterde anket bulunamadı</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+            "{{ q }}" konusunda henüz bir anket yok. Topluluğa ilk sen sormak ister misin?
+          </p>
+          <div style="display: flex; gap: 0.75rem; justify-content: center;">
+            <a href="{% url 'polls:feed' %}" class="btn btn-secondary">
+              Tüm Anketler
+            </a>
+            <a href="{% url 'polls:create' %}" class="btn btn-primary">
+              Yeni Anket Aç
+            </a>
+          </div>
         {% else %}
-          <span class="btn btn-secondary btn-sm" style="opacity: 0.4; cursor: not-allowed;">
-            Sonraki &rarr;
-          </span>
-        {% endif %}
-      </nav>
-    {% endif %}
-
-  {% else %}
-    <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
-      <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
-      {% if q %}
-        <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Aramana uygun anket bulunamadı</h3>
-        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
-          "{{ q }}" konusunda henüz kimse kararsız kalmamış. Sen sormak ister misin?
-        </p>
-        <div style="display: flex; gap: 0.75rem; justify-content: center;">
-          <a href="{% url 'polls:feed' %}" class="btn btn-secondary">
-            Tüm Anketleri Gör
-          </a>
+          <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Bu kategoride henüz anket yok</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+            İlk kararsız kalan sen ol ve toplulukla fikir alışverişine başla!
+          </p>
           <a href="{% url 'polls:create' %}" class="btn btn-primary">
-            Bu Konuda Anket Aç
+            İlk Anketi Başlat
           </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </main>
+
+  <!-- SAĞ SÜTUN: Sosyal İstatistikler ve Trendler Sidebar -->
+  <aside class="social-sidebar">
+
+    <!-- WIDGET 1: Canlı Platform Nabzı -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <span class="widget-title">
+          <span>📊</span> Topluluk Nabzı
+        </span>
+        <span class="pulse-indicator">
+          <span class="pulse-dot"></span> Canlı
+        </span>
+      </div>
+
+      <div class="stat-counter-grid">
+        <div class="stat-counter-box">
+          <span class="stat-counter-value">{{ total_platform_polls }}</span>
+          <span class="stat-counter-label">Aktif Karar</span>
+        </div>
+        <div class="stat-counter-box">
+          <span class="stat-counter-value">{{ total_platform_votes }}</span>
+          <span class="stat-counter-label">Kullanılan Oy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- WIDGET 2: Trend Anketler & İstatistikler -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <span class="widget-title">
+          <span>⚡</span> Günün Trendleri
+        </span>
+        <a href="?tab=trending" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-1);">
+          Tümü &rarr;
+        </a>
+      </div>
+
+      {% if trending_widget_polls %}
+        <div class="trending-list">
+          {% for trend in trending_widget_polls %}
+            <a href="{% url 'polls:detail' poll_id=trend.id %}" class="trend-item">
+              <span class="trend-rank">#{{ forloop.counter }}</span>
+              <div class="trend-content">
+                <h4 class="trend-question">{{ trend.question }}</h4>
+                <div class="trend-meta">
+                  <span>🗳️ <strong>{{ trend.total_votes }}</strong> oy</span>
+                  {% if trend.category %}
+                    <span>&bull; {{ trend.category.icon }} {{ trend.category.name }}</span>
+                  {% endif %}
+                </div>
+
+                <!-- Lider Seçenek Mini Barı -->
+                {% with leader=trend.leading_choice %}
+                  {% if leader %}
+                    <div class="trend-lead-bar" title="Önde giden: {{ leader.text }} ({{ leader|percentage }}%)">
+                      <div class="trend-lead-fill" style="width: {{ leader|percentage }}%;"></div>
+                    </div>
+                  {% endif %}
+                {% endwith %}
+              </div>
+            </a>
+          {% endfor %}
         </div>
       {% else %}
-        <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Henüz bir anket yok</h3>
-        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
-          İlk kararsız kalan sen ol ve topluluğun fikrini öğrenmeye başla!
+        <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 1rem 0;">
+          Henüz trend oluşacak kadar oy kullanılmadı.
         </p>
-        <a href="{% url 'polls:create' %}" class="btn btn-primary">
-          İlk Anketi Başlat
-        </a>
       {% endif %}
     </div>
-  {% endif %}
-</section>
+
+    <!-- WIDGET 3: Popüler Konular / Etiketler -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <span class="widget-title">
+          <span>🏷️</span> Popüler Konular
+        </span>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 0.45rem;">
+        {% for cat in top_categories %}
+          <a href="?category={{ cat.slug }}" class="badge-category" style="padding: 0.35rem 0.75rem; font-size: 0.825rem;">
+            <span>{{ cat.icon }}</span>
+            <span>{{ cat.name }}</span>
+            <span style="opacity: 0.55; font-size: 0.75rem;">({{ cat.p_count }})</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+
+  </aside>
+</div>
 {% endblock %}

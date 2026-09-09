@@ -56,6 +56,12 @@ def poll_feed(request):
 
     categories = Category.objects.all()
 
+    # Sidebar Sosyal Widget Verileri
+    trending_widget_polls = Poll.objects.filter(is_active=True).select_related('author', 'category').prefetch_related('choices__votes', 'votes').annotate(num_votes=Count('votes')).order_by('-num_votes', '-created_at')[:4]
+    total_platform_votes = Vote.objects.count()
+    total_platform_polls = Poll.objects.filter(is_active=True).count()
+    top_categories = Category.objects.annotate(p_count=Count('polls')).order_by('-p_count')[:6]
+
     return render(request, 'polls/index.html', {
         'page_obj': page_obj,
         'polls': page_obj.object_list,
@@ -64,6 +70,10 @@ def poll_feed(request):
         'categories': categories,
         'current_category': current_category,
         'total_count': paginator.count,
+        'trending_widget_polls': trending_widget_polls,
+        'total_platform_votes': total_platform_votes,
+        'total_platform_polls': total_platform_polls,
+        'top_categories': top_categories,
     })
 
 def poll_detail(request, poll_id):
