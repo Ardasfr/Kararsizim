@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ wheel.title }} — Karar Çarkı — Kararsızım{% endblock %}
+{% block meta_description %}{{ wheel.title }} karar çarkını çevir ve kararı şansa bırak! {{ wheel.options.count }} seçenek seni bekliyor.{% endblock %}
+
+{% block extra_head %}
+<style>
+  .wheel-canvas-wrapper {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 480px !important;
+    aspect-ratio: 1 / 1 !important;
+    margin: 1.5rem auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  #wheel-canvas {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+    display: block !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 32px var(--accent-1-soft) !important;
+  }
+  .wheel-pointer {
+    position: absolute !important;
+    top: -10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 30 !important;
+    pointer-events: none !important;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)) !important;
+    transition: transform 0.08s ease !important;
+  }
+  .wheel-pointer.pointer-active {
+    transform: translateX(-50%) translateY(3px) rotate(-10deg) !important;
+  }
+  .wheel-center-button {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 84px !important;
+    height: 84px !important;
+    border-radius: 50% !important;
+    border: 4px solid var(--bg-card) !important;
+    background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-2) 100%) !important;
+    color: #FFFFFF !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    z-index: 20 !important;
+    box-shadow: 0 0 0 3px var(--accent-1), 0 8px 26px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    padding: 0 !important;
+  }
+  .wheel-center-button:hover {
+    transform: translate(-50%, -50%) scale(1.08) !important;
+    box-shadow: 0 0 0 4px var(--accent-1), 0 12px 32px var(--accent-1-glow) !important;
+  }
+  .wheel-center-button:active {
+    transform: translate(-50%, -50%) scale(0.95) !important;
+  }
+  .wheel-center-button.is-spinning {
+    pointer-events: none !important;
+    opacity: 0.85 !important;
+    filter: grayscale(0.2) !important;
+  }
+  .wheel-mini-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    padding: 0.4rem 0.85rem !important;
+    border-radius: var(--border-radius-pill) !important;
+    border: 1px solid var(--border) !important;
+    background: var(--bg-subtle) !important;
+    color: var(--text-primary) !important;
+    font-size: 0.825rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: var(--transition) !important;
+  }
+  .wheel-mini-btn:hover {
+    background: var(--bg-card-hover) !important;
+    border-color: var(--accent-1) !important;
+    color: var(--accent-1) !important;
+  }
+  .wheel-chips-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.65rem !important;
+  }
+  .wheel-option-chip {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.6rem !important;
+    padding: 0.55rem 1.1rem !important;
+    background: var(--bg-subtle) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--border-radius-pill) !important;
+    font-size: 0.925rem !important;
+    font-weight: 700 !important;
+    color: var(--text-primary) !important;
+  }
+  .wheel-option-chip.is-disabled {
+    opacity: 0.35 !important;
+    text-decoration: line-through !important;
+    border-style: dashed !important;
+  }
+  .chip-color-dot {
+    width: 12px !important;
+    height: 12px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  }
+  .winner-banner {
+    width: 100% !important;
+    background: linear-gradient(135deg, var(--accent-1-soft) 0%, var(--accent-3-soft) 100%) !important;
+    border: 2px solid var(--accent-1) !important;
+    border-radius: var(--border-radius-lg) !important;
+    padding: 1.75rem 1.5rem !important;
+    text-align: center !important;
+    margin: 1.25rem 0 !important;
+  }
+  .winner-badge {
+    display: inline-block !important;
+    font-size: 0.825rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    color: var(--accent-1) !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    padding: 0.35rem 0.95rem !important;
+    border-radius: var(--border-radius-pill) !important;
+    margin-bottom: 0.85rem !important;
+  }
+  .winner-text {
+    font-family: var(--font-display) !important;
+    font-size: clamp(1.4rem, 5.5vw, 2.1rem) !important;
+    font-weight: 900 !important;
+    color: var(--text-primary) !important;
+    margin-bottom: 1.25rem !important;
+    word-break: break-word !important;
+  }
+  .wheel-detail-title {
+    font-size: clamp(1.35rem, 4vw, 1.85rem) !important;
+    word-break: break-word !important;
+  }
+  .wheel-header-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+  }
+  .wheel-header-badges {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+  }
+  .wheel-stage-controls {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  .spin-action-btn {
+    width: 100% !important;
+    max-width: 420px !important;
+  }
+
+  /* Responsive Breakpoints */
+  @media (max-width: 768px) {
+    .wheel-detail-layout {
+      gap: 1.25rem !important;
+    }
+    .wheel-stage-card {
+      padding: 1.25rem 1rem !important;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .wheel-keyboard-hint {
+      display: none !important;
+    }
+    .wheel-stage-card {
+      padding: 1rem 0.75rem !important;
+    }
+    .guest-wheel-notice {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 0.75rem !important;
+    }
+    .guest-wheel-notice a {
+      width: 100% !important;
+      text-align: center !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .wheel-canvas-wrapper {
+      max-width: 320px !important;
+      margin: 1rem auto !important;
+    }
+    .wheel-center-button {
+      width: 68px !important;
+      height: 68px !important;
+    }
+    .spin-icon {
+      font-size: 1.1rem !important;
+    }
+    .spin-text {
+      font-size: 0.65rem !important;
+    }
+    .wheel-pointer {
+      top: -8px !important;
+    }
+    .pointer-svg {
+      width: 36px !important;
+      height: 44px !important;
+    }
+    .winner-banner {
+      padding: 1.25rem 1rem !important;
+    }
+    .winner-actions {
+      flex-direction: column !important;
+      width: 100% !important;
+    }
+    .winner-actions .btn {
+      width: 100% !important;
+    }
+    .wheel-chips-grid {
+      gap: 0.45rem !important;
+    }
+    .wheel-option-chip {
+      font-size: 0.85rem !important;
+      padding: 0.45rem 0.85rem !important;
+    }
+    .options-panel-footer > div {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 0.75rem !important;
+    }
+    .options-panel-footer .btn {
+      width: 100% !important;
+      text-align: center !important;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .wheel-canvas-wrapper {
+      max-width: 270px !important;
+    }
+    .wheel-center-button {
+      width: 58px !important;
+      height: 58px !important;
+    }
+    .spin-icon {
+      font-size: 0.95rem !important;
+    }
+    .spin-text {
+      font-size: 0.575rem !important;
+    }
+    .wheel-pointer {
+      top: -6px !important;
+    }
+    .pointer-svg {
+      width: 30px !important;
+      height: 38px !important;
+    }
+    .wheel-detail-header {
+      padding: 1rem 0.75rem !important;
+    }
+    .wheel-stage-card {
+      padding: 0.85rem 0.5rem !important;
+    }
+    .wheel-option-chip {
+      font-size: 0.8rem !important;
+      padding: 0.4rem 0.75rem !important;
+    }
+  }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="wheel-detail-layout">
+
+  <!-- Üst Bilgi Kartı -->
+  <header class="card wheel-detail-header">
+    <div class="wheel-header-top">
+      <div class="poll-author-info">
+        <div class="author-avatar" style="background: linear-gradient(135deg, var(--accent-1), var(--accent-2));">
+          {{ wheel.author.username|slice:":1"|upper }}
+        </div>
+        <div class="author-meta">
+          <span class="author-name">@{{ wheel.author.username }}</span>
+          <span class="poll-time">{{ wheel.created_at|date:"d F Y, H:i" }}</span>
+        </div>
+      </div>
+
+      <div class="wheel-header-badges">
+        {% if wheel.is_public %}
+          <span class="badge-pill-public" title="Forumda herkese açık">
+            🌐 Herkese Açık
+          </span>
+        {% else %}
+          <span class="badge-pill-private" title="Sadece sen görebilirsin">
+            🔒 Gizli Çark
+          </span>
+        {% endif %}
+
+        <span class="badge-pill-spins">
+          🔄 <strong id="spin-counter-val">{{ wheel.spin_count }}</strong> çevrilme
+        </span>
+
+        {% if is_author %}
+          <a href="{% url 'wheels:delete' wheel_id=wheel.id %}" class="btn btn-sm btn-outline" style="border-color: var(--accent-2); color: var(--accent-2);" title="Çarkı Sil">
+            🗑️ Sil
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <h1 class="wheel-detail-title">{{ wheel.title }}</h1>
+
+    {% if wheel.description %}
+      <p class="wheel-detail-desc">{{ wheel.description }}</p>
+    {% endif %}
+
+    <!-- Misafir Kullanıcı Bilgi Notu -->
+    {% if not user.is_authenticated %}
+      <div class="guest-wheel-notice" role="region" aria-label="Ziyaretçi Bilgilendirmesi">
+        <div class="guest-notice-icon">✨</div>
+        <div class="guest-notice-content">
+          <strong>Bu çarkı özgürce çevirebilir ve kararını alabilirsin!</strong>
+          <p>Kendi seçeneklerinle kişisel karar çarklarını oluşturup kaydetmek için ücretsiz kayıt ol.</p>
+        </div>
+        <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-sm" style="white-space: nowrap;">
+          Hemen Kayıt Ol
+        </a>
+      </div>
+    {% endif %}
+  </header>
+
+  <!-- Ana Çark Sahnesi -->
+  <section class="card wheel-stage-card" id="wheel-stage-container"
+           data-wheel-id="{{ wheel.id }}"
+           data-spin-url="{% url 'wheels:spin_record' wheel_id=wheel.id %}"
+           data-options='{{ options_json }}'>
+
+    <!-- Üst Kontrol Çubuğu (Ses, Hızlı Paylaşım) -->
+    <div class="wheel-stage-controls">
+      <button type="button" id="sound-toggle-btn" class="wheel-mini-btn" title="Sesi Aç / Kapat" aria-label="Çark Ses Efektini Aç veya Kapat">
+        <span id="sound-icon">🔊</span> <span class="btn-text">Ses Açık</span>
+      </button>
+
+      <span class="wheel-keyboard-hint">
+        💡 İpucu: <kbd>BOŞLUK</kbd> (Space) tuşuna basarak da çevirebilirsin!
+      </span>
+
+      <button type="button" id="wheel-share-btn" class="wheel-mini-btn btn-share" data-url="{{ request.build_absolute_uri }}" data-title="{{ wheel.title }}" title="Çark Linkini Kopyala">
+        🔗 Paylaş
+      </button>
+    </div>
+
+    <!-- Çark ve Gösterge Kapsayıcısı -->
+    <div class="wheel-canvas-wrapper" id="wheel-canvas-wrapper">
+      <!-- Üstte Duran Hassas İbre / Ok -->
+      <div class="wheel-pointer" id="wheel-pointer" aria-hidden="true">
+        <svg viewBox="0 0 44 54" width="44" height="54" class="pointer-svg">
+          <defs>
+            <linearGradient id="pointerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FF6584" />
+              <stop offset="100%" stop-color="#E11D48" />
+            </linearGradient>
+            <filter id="pointerShadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="rgba(0,0,0,0.5)" />
+            </filter>
+          </defs>
+          <!-- İbre Gövdesi -->
+          <polygon points="22,50 6,8 38,8" fill="url(#pointerGrad)" filter="url(#pointerShadow)" stroke="#161928" stroke-width="2.5" />
+          <!-- İbre Sabitleme Halkası -->
+          <circle cx="22,16" r="6" fill="#FFD700" stroke="#161928" stroke-width="2" />
+        </svg>
+      </div>
+
+      <!-- HTML5 Canvas (60-120 FPS Pre-rendered Buffer) -->
+      <canvas id="wheel-canvas" width="600" height="600" role="img" aria-label="{{ wheel.title }} seçeneklerini gösteren etkileşimli karar çarkı"></canvas>
+
+      <!-- Çark Merkezindeki ÇEVİR Butonu -->
+      <button type="button" id="center-spin-btn" class="wheel-center-button" aria-label="Karar Çarkını Çevir">
+        <div class="center-button-inner">
+          <span class="spin-icon">🎲</span>
+          <span class="spin-text">ÇEVİR</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Karar / Sonuç Bildirim Alanı (Animasyonlu) -->
+    <div id="winner-banner" class="winner-banner" style="display: none;" role="alert" aria-live="assertive">
+      <div class="winner-badge">🏆 ÇARKIN KARARI</div>
+      <div class="winner-text" id="winner-title">—</div>
+      <div class="winner-actions">
+        <button type="button" id="spin-again-btn" class="btn btn-primary">
+          🔄 Tekrar Çevir
+        </button>
+        <button type="button" id="remove-winner-btn" class="btn btn-secondary" title="Bu seçeneği geçici olarak çıkar ve tekrar çevir">
+          ✖️ Çıkar & Tekrar Çevir
+        </button>
+        <button type="button" id="share-result-btn" class="btn btn-secondary" title="Sonucu Paylaş">
+          📢 Sonucu Paylaş
+        </button>
+      </div>
+    </div>
+
+    <!-- Alt Çevir Aksiyon Butonu -->
+    <div class="wheel-bottom-actions">
+      <button type="button" id="main-spin-btn" class="btn btn-primary btn-lg spin-action-btn">
+        <span>🎡</span> Şansını Dene & Çarkı Çevir!
+      </button>
+    </div>
+
+  </section>
+
+  <!-- Seçenekler Paneli -->
+  <section class="card wheel-options-panel">
+    <div class="options-panel-header">
+      <h2 style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+        <span>📋</span> Çarktaki Seçenekler
+        <span class="badge-count" id="active-options-count">{{ options|length }}</span>
+      </h2>
+    </div>
+
+    <!-- Modern Çark Seçenek Çipleri -->
+    <div class="wheel-chips-grid">
+      {% for opt in options %}
+        <div class="wheel-option-chip" id="opt-chip-{{ opt.id }}">
+          <span class="chip-color-dot" style="background-color: {{ opt.color|default:'var(--accent-1)' }};"></span>
+          <span class="chip-label">{{ opt.text }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="options-panel-footer">
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; justify-content: space-between; width: 100%;">
+        <span style="font-size: 0.85rem; color: var(--text-muted);">
+          Bu çark @{{ wheel.author.username }} tarafından hazırlandı.
+        </span>
+        <div style="display: flex; gap: 0.5rem;">
+          <a href="{% url 'wheels:list' %}" class="btn btn-secondary btn-sm">
+            Tüm Çarklar
+          </a>
+          <a href="{% url 'wheels:create' %}" class="btn btn-primary btn-sm">
+            ➕ Yeni Çark Aç
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/wheel.js' %}"></script>
+{% endblock %}

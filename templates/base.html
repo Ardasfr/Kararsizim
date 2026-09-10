@@ -13,8 +13,20 @@
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
 
+  <!-- Anti-FOUC Immediate Theme Initialization -->
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var active = saved || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', active);
+      } catch(e) {}
+    })();
+  </script>
+
   <!-- Styles -->
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v={% now 'U' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -39,12 +51,17 @@
   <footer class="footer">
     <div class="footer-container">
       <p><strong>🤔 Kararsızım</strong> — Kararsız anların pratik topluluk rehberi.</p>
+      <div style="margin: 0.5rem 0;">
+        <button type="button" class="btn btn-secondary btn-sm a11y-trigger-btn" style="font-size: 0.8rem; padding: 0.35rem 0.85rem;" title="Erişilebilirlik Ayarları">
+          ♿ Erişilebilirlik Ayarları
+        </button>
+      </div>
       <p class="text-muted">&copy; 2026 Kararsızım. Tüm hakları saklıdır.</p>
     </div>
   </footer>
 
   <!-- Scripts -->
-  <script src="{% static 'js/main.js' %}"></script>
+  <script src="{% static 'js/main.js' %}?v={% now 'U' %}"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

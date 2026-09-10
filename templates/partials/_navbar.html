@@ -1,5 +1,179 @@
 {% load static %}
 <header class="navbar">
+  <style>
+    .navbar-actions {
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.55rem !important;
+      flex-shrink: 0 !important;
+    }
+    .nav-auth-btn {
+      white-space: nowrap !important;
+      font-weight: 700 !important;
+      font-size: 0.85rem !important;
+      padding: 0.42rem 0.85rem !important;
+      border-radius: var(--border-radius-pill) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-shrink: 0 !important;
+      text-decoration: none !important;
+      transition: var(--transition) !important;
+    }
+    .nav-login-btn {
+      background: var(--bg-subtle) !important;
+      color: var(--text-primary) !important;
+      border: 1px solid var(--border) !important;
+    }
+    .nav-login-btn:hover {
+      background: var(--bg-card-hover) !important;
+      border-color: var(--accent-1) !important;
+      color: var(--accent-1) !important;
+    }
+    .nav-register-btn {
+      background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-1-hover) 100%) !important;
+      color: #FFFFFF !important;
+      border: 1px solid transparent !important;
+      box-shadow: 0 2px 8px var(--accent-1-glow) !important;
+      display: inline-flex !important;
+    }
+    .nav-register-btn:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px var(--accent-1-glow) !important;
+      color: #FFFFFF !important;
+    }
+    .nav-wheel-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 0.4rem !important;
+      font-weight: 700 !important;
+      font-size: 0.85rem !important;
+      padding: 0.42rem 0.85rem !important;
+      border-radius: var(--border-radius-pill) !important;
+      flex-shrink: 0 !important;
+    }
+
+    @media (max-width: 640px) {
+      .navbar-container {
+        padding: 0.55rem 0.75rem !important;
+        gap: 0.4rem !important;
+      }
+      .navbar-brand {
+        font-size: 1.15rem !important;
+        gap: 0.4rem !important;
+      }
+      .brand-badge {
+        display: none !important;
+      }
+      .navbar-actions {
+        gap: 0.35rem !important;
+      }
+      .nav-wheel-btn {
+        width: 36px !important;
+        height: 36px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        justify-content: center !important;
+      }
+      .nav-wheel-btn .nav-btn-text {
+        display: none !important;
+      }
+      .navbar-create-btn {
+        width: 36px !important;
+        height: 36px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        justify-content: center !important;
+      }
+      .navbar-create-btn .nav-btn-text {
+        display: none !important;
+      }
+      .btn-icon {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 0.95rem !important;
+      }
+      .nav-auth-btn {
+        padding: 0.35rem 0.7rem !important;
+        font-size: 0.8rem !important;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .nav-guest-create-btn {
+        display: none !important;
+      }
+      .navbar-container {
+        padding: 0.5rem 0.6rem !important;
+        gap: 0.3rem !important;
+      }
+      .navbar-brand {
+        font-size: 1.1rem !important;
+      }
+      .navbar-actions {
+        gap: 0.28rem !important;
+      }
+      .btn-icon,
+      .nav-wheel-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.88rem !important;
+      }
+      .nav-auth-btn {
+        padding: 0.32rem 0.6rem !important;
+        font-size: 0.775rem !important;
+      }
+      .nav-register-btn {
+        display: inline-flex !important;
+        padding: 0.32rem 0.7rem !important;
+      }
+      .user-pill {
+        padding: 0.2rem 0.3rem !important;
+      }
+      .user-pill-name {
+        display: none !important;
+      }
+      .nav-logout-btn {
+        padding: 0.32rem 0.6rem !important;
+        font-size: 0.775rem !important;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .navbar-container {
+        padding: 0.4rem 0.45rem !important;
+        gap: 0.2rem !important;
+      }
+      .navbar-brand {
+        font-size: 1.02rem !important;
+        gap: 0.2rem !important;
+      }
+      .navbar-actions {
+        gap: 0.18rem !important;
+      }
+      .btn-icon,
+      .nav-wheel-btn,
+      .navbar-create-btn {
+        width: 29px !important;
+        height: 29px !important;
+        font-size: 0.825rem !important;
+      }
+      .nav-auth-btn {
+        padding: 0.28rem 0.45rem !important;
+        font-size: 0.725rem !important;
+        font-weight: 800 !important;
+      }
+      .nav-register-btn {
+        padding: 0.28rem 0.5rem !important;
+        font-size: 0.725rem !important;
+        display: inline-flex !important;
+      }
+      .nav-logout-btn {
+        padding: 0.28rem 0.45rem !important;
+        font-size: 0.725rem !important;
+      }
+    }
+  </style>
   <div class="navbar-container">
     <!-- Brand / Logo -->
     <a href="{% url 'polls:feed' %}" class="navbar-brand">
@@ -16,13 +190,18 @@
 
     <!-- Right Controls -->
     <div class="navbar-actions">
+      <!-- Karar Çarkı Butonu -->
+      <a href="{% url 'wheels:list' %}" class="btn btn-secondary btn-sm nav-wheel-btn" title="Karar Çarkları — Çevir & Karar Ver" aria-label="Karar Çarkları">
+        <span aria-hidden="true">🎡</span> <span class="nav-btn-text">Çark</span>
+      </a>
+
       <!-- Accessibility Panel Toggle -->
       <button type="button" id="a11y-toggle" class="btn btn-icon a11y-trigger-btn" title="Erişilebilirlik Seçenekleri" aria-label="Erişilebilirlik Seçeneklerini Aç" aria-haspopup="dialog" aria-expanded="false">
         <span aria-hidden="true">♿</span>
       </button>
 
       <!-- Dark / Light Mode Toggle -->
-      <button type="button" id="theme-toggle" class="btn btn-icon" title="Temayı Değiştir" aria-label="Temayı Açık veya Koyu Olarak Değiştir">
+      <button type="button" id="theme-toggle" class="btn btn-icon theme-toggle-btn" title="Temayı Değiştir" aria-label="Temayı Açık veya Koyu Olarak Değiştir">
         <span id="theme-icon" aria-hidden="true">🌙</span>
       </button>
 
@@ -35,19 +214,128 @@
           <span class="user-pill-name">@{{ user.username }}</span>
         </a>
         <a href="{% url 'accounts:logout' %}" class="btn btn-secondary btn-sm nav-logout-btn" title="Güvenli Çıkış Yap" aria-label="Oturumu Kapat">
-          Çıkış
+          <span class="nav-logout-text">Çıkış</span>
         </a>
       {% else %}
-        <a href="{% url 'polls:create' %}" class="btn btn-primary btn-sm navbar-create-btn">
+        <a href="{% url 'polls:create' %}" class="btn btn-primary btn-sm navbar-create-btn nav-guest-create-btn">
           <span aria-hidden="true">➕</span> <span class="nav-btn-text">Anket Aç</span>
         </a>
-        <a href="{% url 'accounts:login' %}" class="btn btn-secondary btn-sm nav-auth-btn">
+        <a href="{% url 'accounts:login' %}" class="btn btn-secondary btn-sm nav-auth-btn nav-login-btn">
           Giriş
         </a>
-        <a href="{% url 'accounts:register' %}" class="btn btn-outline btn-sm nav-auth-btn nav-register-btn">
+        <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-sm nav-auth-btn nav-register-btn">
           Kayıt Ol
         </a>
       {% endif %}
     </div>
   </div>
 </header>
+
+<!-- Guaranteed Fail-safe Navbar Script -->
+<script>
+(function() {
+  function syncThemeIcon(theme) {
+    const icon = document.getElementById('theme-icon');
+    const btn = document.getElementById('theme-toggle');
+    const isDark = theme === 'dark';
+    if (icon) {
+      icon.textContent = isDark ? '☀️' : '🌙';
+    } else if (btn) {
+      btn.textContent = isDark ? '☀️' : '🌙';
+    }
+    if (btn) {
+      btn.setAttribute('title', isDark ? 'Aydınlık moda geç' : 'Karanlık moda geç');
+      btn.setAttribute('aria-label', isDark ? 'Aydınlık moda geç' : 'Karanlık moda geç');
+    }
+  }
+
+  // Initial sync
+  try {
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const active = saved || (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', active);
+    syncThemeIcon(active);
+  } catch(e) {}
+
+  function performThemeToggle(themeBtn) {
+    const doc = document.documentElement;
+    const current = doc.getAttribute('data-theme') || 'dark';
+    const nextTheme = (current === 'dark') ? 'light' : 'dark';
+
+    // Animate button icon smoothly
+    if (themeBtn) {
+      themeBtn.classList.remove('is-animating');
+      void themeBtn.offsetWidth; // Force reflow
+      themeBtn.classList.add('is-animating');
+      setTimeout(() => themeBtn.classList.remove('is-animating'), 400);
+    }
+
+    doc.setAttribute('data-theme', nextTheme);
+    try { localStorage.setItem('theme', nextTheme); } catch(err) {}
+    syncThemeIcon(nextTheme);
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: nextTheme } }));
+  }
+
+  // Global Click Handlers
+  document.addEventListener('click', function(e) {
+    // 1. Dark/Light Theme Toggle
+    const themeBtn = e.target.closest('#theme-toggle, .theme-toggle-btn');
+    if (themeBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      performThemeToggle(themeBtn);
+      return;
+    }
+
+    // 2. Accessibility Modal Open
+    const a11yTrigger = e.target.closest('#a11y-toggle, .a11y-trigger-btn');
+    if (a11yTrigger && !e.target.closest('#a11y-modal')) {
+      e.preventDefault();
+      e.stopPropagation();
+      const modal = document.getElementById('a11y-modal');
+      if (modal) {
+        modal.classList.add('is-active');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        const closeBtn = document.getElementById('a11y-modal-close');
+        if (closeBtn) closeBtn.focus();
+      }
+      return;
+    }
+
+    // 3. Accessibility Modal Close
+    const closeBtn = e.target.closest('#a11y-modal-close, #a11y-save-close-btn');
+    if (closeBtn) {
+      e.preventDefault();
+      const modal = document.getElementById('a11y-modal');
+      if (modal) {
+        modal.classList.remove('is-active');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+      return;
+    }
+
+    // 4. Modal Backdrop click
+    const modal = document.getElementById('a11y-modal');
+    if (modal && e.target === modal) {
+      modal.classList.remove('is-active');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+  }, true);
+
+  // Keyboard Escape for Modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('a11y-modal');
+      if (modal && modal.classList.contains('is-active')) {
+        modal.classList.remove('is-active');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+    }
+  });
+})();
+</script>

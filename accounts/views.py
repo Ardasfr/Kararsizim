@@ -54,9 +54,15 @@ def profile_view(request):
     active_polls_count = sum(1 for p in user_polls if not p.is_expired)
     expired_polls_count = sum(1 for p in user_polls if p.is_expired)
 
+    # Karar Çarkları
+    user_wheels = request.user.wheels.all().prefetch_related('options').order_by('-created_at')
+    total_wheel_spins = sum(w.spin_count for w in user_wheels)
+
     return render(request, 'accounts/profile.html', {
         'user_polls': user_polls,
         'total_votes_received': total_votes_received,
         'active_polls_count': active_polls_count,
         'expired_polls_count': expired_polls_count,
+        'user_wheels': user_wheels,
+        'total_wheel_spins': total_wheel_spins,
     })

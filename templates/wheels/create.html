@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni Karar Çarkı Oluştur — Kararsızım{% endblock %}
+{% block meta_description %}Kendi seçeneklerinle kişisel karar çarkını hazırla, ister forumda paylaş ister kendin çevirip kararını al!{% endblock %}
+
+{% block extra_head %}
+<style>
+  @media (max-width: 480px) {
+    .template-buttons-grid .btn {
+      flex: 1 1 calc(50% - 0.5rem);
+      text-align: center;
+      font-size: 0.775rem;
+    }
+    .form-actions {
+      flex-direction: column-reverse !important;
+      width: 100% !important;
+    }
+    .form-actions .btn {
+      width: 100% !important;
+      text-align: center !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card form-card" style="max-width: 720px; margin: 0 auto;">
+
+  <!-- Form Başlık -->
+  <div class="form-header" style="margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+      <span style="font-size: 2.25rem;">🎡</span>
+      <div>
+        <h1 style="font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; margin: 0;">
+          Yeni Karar Çarkı Oluştur
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 0.25rem;">
+          Kararsız kaldığın seçenekleri ekle, renkli karar çarkını saniyeler içinde hazırla.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hızlı Hazır Şablonlar -->
+  <div class="wheel-templates-box" style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--border-radius-md); margin-bottom: 2rem; border: 1px dashed var(--border);">
+    <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 0.65rem;">
+      ⚡ Hızlı Şablonlar (Tek tıkla doldur):
+    </span>
+    <div class="template-buttons-grid" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+      <button type="button" class="btn btn-secondary btn-sm template-btn" data-title="Bugün Ne Yesek?" data-options="Pizza,Burger,Döner,Ev Yemeği,Salata,Sushi">
+        🍔 Ne Yesek?
+      </button>
+      <button type="button" class="btn btn-secondary btn-sm template-btn" data-title="Evet mi, Hayır mı?" data-options="Evet,Hayır,Belki">
+        ⚖️ Evet / Hayır
+      </button>
+      <button type="button" class="btn btn-secondary btn-sm template-btn" data-title="Akşam Ne Yapsam?" data-options="Film İzle,Kitap Oku,Oyun Oyna,Yürüyüş Yap,Erken Uyu">
+        🎬 Akşam Aktivitesi
+      </button>
+      <button type="button" class="btn btn-secondary btn-sm template-btn" data-title="1 ile 6 Arası Zar" data-options="1,2,3,4,5,6">
+        🎲 1-6 Zar
+      </button>
+      <button type="button" class="btn btn-secondary btn-sm template-btn" data-title="Kahve Seçimi" data-options="Espresso,Latte,Filtre Kahve,Americano,Cappuccino,Türk Kahvesi">
+        ☕ Hangi Kahve?
+      </button>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form method="POST" action="{% url 'wheels:create' %}" id="wheel-create-form">
+    {% csrf_token %}
+
+    <!-- Hatalar -->
+    {% if form.non_field_errors %}
+      <div class="alert alert-error" style="margin-bottom: 1.5rem;" role="alert">
+        {% for err in form.non_field_errors %}
+          <p>{{ err }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Çark Başlığı -->
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label for="{{ form.title.id_for_label }}" class="form-label" style="font-weight: 700; display: block; margin-bottom: 0.5rem;">
+        {{ form.title.label }} <span style="color: var(--accent-2);">*</span>
+      </label>
+      {{ form.title }}
+      {% if form.title.errors %}
+        <span class="field-error" style="color: var(--accent-2); font-size: 0.85rem; margin-top: 0.25rem; display: block;">
+          {{ form.title.errors.0 }}
+        </span>
+      {% endif %}
+    </div>
+
+    <!-- Açıklama -->
+    <div class="form-group" style="margin-bottom: 1.75rem;">
+      <label for="{{ form.description.id_for_label }}" class="form-label" style="font-weight: 700; display: block; margin-bottom: 0.5rem;">
+        {{ form.description.label }}
+      </label>
+      {{ form.description }}
+      {% if form.description.errors %}
+        <span class="field-error" style="color: var(--accent-2); font-size: 0.85rem; margin-top: 0.25rem; display: block;">
+          {{ form.description.errors.0 }}
+        </span>
+      {% endif %}
+    </div>
+
+    <!-- Seçenekler Listesi -->
+    <div class="form-group" style="margin-bottom: 1.75rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <label class="form-label" style="font-weight: 700; margin: 0;">
+          Çark Seçenekleri <span style="color: var(--accent-2);">*</span>
+          <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin-left: 0.5rem;">
+            (En az 2, en fazla 20 seçenek)
+          </span>
+        </label>
+        <span id="choice-counter-badge" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-1); background: var(--accent-1-soft); padding: 0.2rem 0.6rem; border-radius: var(--border-radius-pill);">
+          3 / 20 Seçenek
+        </span>
+      </div>
+
+      <div id="wheel-choices-container" class="choices-container" style="display: flex; flex-direction: column; gap: 0.65rem;">
+        <!-- Varsayılan Seçenek Girişleri -->
+        <div class="choice-input-row" style="display: flex; gap: 0.5rem; align-items: center;">
+          <span class="choice-index-badge" style="width: 28px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.9rem;">1</span>
+          <input type="text" name="choices[]" class="form-input choice-field" placeholder="1. Seçenek (örn: Pizza)" value="Pizza" required autocomplete="off">
+          <button type="button" class="btn btn-icon remove-choice-btn" style="color: var(--accent-2); opacity: 0.7;" title="Bu seçeneği sil" aria-label="Seçeneği sil">✕</button>
+        </div>
+
+        <div class="choice-input-row" style="display: flex; gap: 0.5rem; align-items: center;">
+          <span class="choice-index-badge" style="width: 28px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.9rem;">2</span>
+          <input type="text" name="choices[]" class="form-input choice-field" placeholder="2. Seçenek (örn: Burger)" value="Burger" required autocomplete="off">
+          <button type="button" class="btn btn-icon remove-choice-btn" style="color: var(--accent-2); opacity: 0.7;" title="Bu seçeneği sil" aria-label="Seçeneği sil">✕</button>
+        </div>
+
+        <div class="choice-input-row" style="display: flex; gap: 0.5rem; align-items: center;">
+          <span class="choice-index-badge" style="width: 28px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.9rem;">3</span>
+          <input type="text" name="choices[]" class="form-input choice-field" placeholder="3. Seçenek (örn: Döner)" value="Döner" autocomplete="off">
+          <button type="button" class="btn btn-icon remove-choice-btn" style="color: var(--accent-2); opacity: 0.7;" title="Bu seçeneği sil" aria-label="Seçeneği sil">✕</button>
+        </div>
+      </div>
+
+      <button type="button" id="add-choice-btn" class="btn btn-secondary btn-sm" style="margin-top: 0.85rem; width: 100%;">
+        ➕ Yeni Seçenek Ekle
+      </button>
+    </div>
+
+    <!-- Forumda Paylaş Onay Kutusu -->
+    <div class="form-group" style="margin-bottom: 2rem; padding: 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--border-radius-md);">
+      <label for="{{ form.is_public.id_for_label }}" style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer;">
+        {{ form.is_public }}
+        <div>
+          <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: block;">
+            🌐 Forumda / Herkese Açık Paylaş
+          </span>
+          <span style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-top: 0.2rem;">
+            İşaretlenirse çark Kararsızım ana forumunda ve akışta listelenir. Üye olan veya olmayan herkes çarkınızı görüntüleyip çevirebilir.
+          </span>
+        </div>
+      </label>
+    </div>
+
+    <!-- Gönder Butonu -->
+    <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; align-items: center;">
+      <a href="{% url 'wheels:list' %}" class="btn btn-secondary">
+        İptal
+      </a>
+      <button type="submit" class="btn btn-primary btn-lg" style="font-weight: 800; box-shadow: 0 4px 16px var(--accent-1-glow);">
+        🎡 Karar Çarkını Oluştur & Yayınla
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('wheel-choices-container');
+  const addBtn = document.getElementById('add-choice-btn');
+  const counterBadge = document.getElementById('choice-counter-badge');
+  const form = document.getElementById('wheel-create-form');
+  const titleInput = document.getElementById('id_title');
+
+  function updateRowIndices() {
+    const rows = container.querySelectorAll('.choice-input-row');
+    rows.forEach((row, idx) => {
+      const badge = row.querySelector('.choice-index-badge');
+      const input = row.querySelector('.choice-field');
+      if (badge) badge.textContent = idx + 1;
+      if (input) input.placeholder = `${idx + 1}. Seçenek`;
+    });
+    if (counterBadge) {
+      counterBadge.textContent = `${rows.length} / 20 Seçenek`;
+    }
+  }
+
+  function addChoiceRow(val = '') {
+    const rows = container.querySelectorAll('.choice-input-row');
+    if (rows.length >= 20) {
+      alert('En fazla 20 seçenek ekleyebilirsiniz.');
+      return;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'choice-input-row';
+    row.style.cssText = 'display: flex; gap: 0.5rem; align-items: center;';
+    row.innerHTML = `
+      <span class="choice-index-badge" style="width: 28px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.9rem;"></span>
+      <input type="text" name="choices[]" class="form-input choice-field" value="${val}" placeholder="Seçenek..." autocomplete="off">
+      <button type="button" class="btn btn-icon remove-choice-btn" style="color: var(--accent-2); opacity: 0.7;" title="Bu seçeneği sil" aria-label="Seçeneği sil">✕</button>
+    `;
+
+    container.appendChild(row);
+    updateRowIndices();
+    if (!val) {
+      const inp = row.querySelector('.choice-field');
+      if (inp) inp.focus();
+    }
+  }
+
+  if (addBtn) {
+    addBtn.addEventListener('click', () => addChoiceRow());
+  }
+
+  container.addEventListener('click', (e) => {
+    if (e.target.closest('.remove-choice-btn')) {
+      const rows = container.querySelectorAll('.choice-input-row');
+      if (rows.length <= 2) {
+        alert('En az 2 seçenek bulunmalıdır.');
+        return;
+      }
+      e.target.closest('.choice-input-row').remove();
+      updateRowIndices();
+    }
+  });
+
+  // Hızlı şablonlar
+  document.querySelectorAll('.template-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tTitle = btn.dataset.title;
+      const tOptions = btn.dataset.options.split(',');
+
+      if (titleInput) titleInput.value = tTitle;
+      container.innerHTML = '';
+      tOptions.forEach(opt => addChoiceRow(opt.trim()));
+    });
+  });
+
+  updateRowIndices();
+});
+</script>
+{% endblock %}

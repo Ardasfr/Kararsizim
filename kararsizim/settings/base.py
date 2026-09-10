@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     # Custom local apps
     'accounts.apps.AccountsConfig',
     'polls.apps.PollsConfig',
+    'wheels.apps.WheelsConfig',
 ]
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
@@ -104,7 +105,7 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "kararsizim.storage.ForgivingCompressedManifestStaticFilesStorage",
     },
 }
 

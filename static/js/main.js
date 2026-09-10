@@ -3,13 +3,19 @@
  * Handles: Theme Toggle, AJAX Voting, Dynamic Choice Inputs, Share Link
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+function bootMain() {
   initTheme();
   initAccessibility();
   initAjaxVoting();
   initDynamicChoices();
   initShareButtons();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootMain);
+} else {
+  bootMain();
+}
 
 /* ==========================================================================
    1. Theme Management (Dark / Light Mode)
@@ -23,20 +29,36 @@ function initTheme() {
   applyTheme(currentTheme);
 
   if (themeToggleBtn) {
-    themeToggleBtn.addEventListener('click', () => {
-      currentTheme = (currentTheme === 'dark') ? 'light' : 'dark';
-      localStorage.setItem('theme', currentTheme);
-      applyTheme(currentTheme);
+    themeToggleBtn.addEventListener('click', (e) => {
+      // Toggle if not already handled by capture phase
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const nextTheme = (current === 'dark') ? 'light' : 'dark';
+      localStorage.setItem('theme', nextTheme);
+      applyTheme(nextTheme);
     });
   }
+
+  window.addEventListener('themeChanged', (e) => {
+    if (e.detail && e.detail.theme) {
+      applyTheme(e.detail.theme);
+    }
+  });
 }
 
 function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
+  const doc = document.documentElement;
+  doc.setAttribute('data-theme', theme);
   const themeToggleBtn = document.getElementById('theme-toggle');
+  const icon = document.getElementById('theme-icon');
+  const isDark = theme === 'dark';
+  if (icon) {
+    icon.textContent = isDark ? '☀️' : '🌙';
+  } else if (themeToggleBtn) {
+    themeToggleBtn.textContent = isDark ? '☀️' : '🌙';
+  }
   if (themeToggleBtn) {
-    themeToggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
-    themeToggleBtn.setAttribute('title', theme === 'dark' ? 'Aydınlık moda geç' : 'Karanlık moda geç');
+    themeToggleBtn.setAttribute('title', isDark ? 'Aydınlık moda geç' : 'Karanlık moda geç');
+    themeToggleBtn.setAttribute('aria-label', isDark ? 'Aydınlık moda geç' : 'Karanlık moda geç');
   }
 }
 
@@ -367,9 +389,9 @@ function initAccessibility() {
     document.body.style.overflow = '';
   }
 
-  if (a11yToggleBtn) {
-    a11yToggleBtn.addEventListener('click', openModal);
-  }
+  document.querySelectorAll('.a11y-trigger-btn').forEach(btn => {
+    btn.addEventListener('click', openModal);
+  });
   if (a11yCloseBtn) {
     a11yCloseBtn.addEventListener('click', closeModal);
   }

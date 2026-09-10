@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+
+{% block title %}Karar Çarkları — Şansına Güven & Kararını Ver — Kararsızım{% endblock %}
+{% block meta_description %}Kararsız kaldığın anlarda topluluğun karar çarklarını çevir veya kendi seçeneklerinle çark oluşturup kararı şansa bırak!{% endblock %}
+
+{% block extra_head %}
+<style>
+  @media (max-width: 600px) {
+    .wheel-hero-card {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 1rem !important;
+      padding: 1.25rem 1rem !important;
+    }
+    .wheel-hero-actions {
+      width: 100% !important;
+    }
+    .wheel-hero-actions .btn {
+      width: 100% !important;
+      text-align: center !important;
+    }
+    .wheel-card-header {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 0.5rem !important;
+    }
+    .wheel-card-footer {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 0.75rem !important;
+    }
+    .wheel-card-footer > div {
+      width: 100% !important;
+      display: flex !important;
+      gap: 0.5rem !important;
+    }
+    .wheel-card-footer .btn {
+      flex: 1 !important;
+      text-align: center !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="social-feed-grid">
+  <!-- SOL / ORTA SÜTUN: Çarklar Akışı -->
+  <main class="social-main-column">
+
+    <!-- Çark Başlık Banner / Davet Kartı -->
+    <div class="wheel-hero-card">
+      <div class="wheel-hero-content">
+        <div class="wheel-hero-icon" aria-hidden="true">🎡</div>
+        <div>
+          <h1 class="wheel-hero-title">Karar Çarkları</h1>
+          <p class="wheel-hero-desc">
+            Seçenekler arasında kaybolduysan bırak kararı çark versin! Topluluğun çarklarını çevir ya da kendi özel çarkını hazırla.
+          </p>
+        </div>
+      </div>
+      <div class="wheel-hero-actions">
+        <a href="{% url 'wheels:create' %}" class="btn btn-primary btn-sm" style="font-weight: 700; box-shadow: 0 4px 14px var(--accent-1-glow);">
+          <span>➕</span> Kendi Çarkını Oluştur
+        </a>
+      </div>
+    </div>
+
+    <!-- Sekmeler: En Yeniler vs En Çok Çevrilenler -->
+    <div class="feed-tabs-wrapper">
+      <a href="?tab=latest{% if q %}&q={{ q }}{% endif %}" class="feed-tab {% if tab == 'latest' %}active{% endif %}">
+        <span>🔥</span> En Yeniler
+      </a>
+      <a href="?tab=popular{% if q %}&q={{ q }}{% endif %}" class="feed-tab {% if tab == 'popular' %}active{% endif %}">
+        <span>⚡</span> En Çok Çevrilenler
+      </a>
+      <a href="{% url 'polls:feed' %}" class="feed-tab" style="margin-left: auto; font-size: 0.825rem; color: var(--text-secondary);">
+        <span>📊</span> Topluluk Anketleri &rarr;
+      </a>
+    </div>
+
+    <!-- Arama Bilgisi -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+      <h2 style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+        {% if q %}
+          <span>🔎</span> "{{ q }}" ile İlgili Çarklar
+        {% elif tab == 'popular' %}
+          <span>⚡</span> En Çok Çevrilen Popüler Çarklar
+        {% else %}
+          <span>🔥</span> Son Eklenen Karar Çarkları
+        {% endif %}
+      </h2>
+      <span style="font-size: 0.825rem; color: var(--text-muted); font-weight: 600;">
+        {{ total_count }} çark
+      </span>
+    </div>
+
+    <!-- Çark Kartları Listesi -->
+    {% if wheels %}
+      <div class="wheels-grid">
+        {% for wheel in wheels %}
+          <article class="card wheel-card" id="wheel-{{ wheel.id }}">
+            <div class="wheel-card-header">
+              <div class="poll-author-info">
+                <div class="author-avatar" style="background: linear-gradient(135deg, var(--accent-1), var(--accent-2));">
+                  {{ wheel.author.username|slice:":1"|upper }}
+                </div>
+                <div class="author-meta">
+                  <span class="author-name">@{{ wheel.author.username }}</span>
+                  <span class="poll-time">{{ wheel.created_at|timesince }} önce</span>
+                </div>
+              </div>
+              <span class="badge-pill-spins" title="Toplam çevrilme sayısı">
+                🔄 <strong>{{ wheel.spin_count }}</strong> çevrildi
+              </span>
+            </div>
+
+            <h3 class="wheel-card-title">
+              <a href="{% url 'wheels:detail' wheel_id=wheel.id %}">{{ wheel.title }}</a>
+            </h3>
+
+            {% if wheel.description %}
+              <p class="wheel-card-desc">{{ wheel.description|truncatechars:95 }}</p>
+            {% endif %}
+
+            <!-- Seçenek Mini Rozetleri (İlk 4 tanesi) -->
+            <div class="wheel-card-tags">
+              {% for opt in wheel.options.all|slice:":4" %}
+                <span class="wheel-slice-tag" style="border-left: 3px solid {{ opt.color|default:'var(--accent-1)' }};">
+                  {{ opt.text }}
+                </span>
+              {% endfor %}
+              {% if wheel.options.count > 4 %}
+                <span class="wheel-slice-tag more-tag">+{{ wheel.options.count|add:"-4" }} seçenek</span>
+              {% endif %}
+            </div>
+
+            <!-- Kart Altı Butonlar -->
+            <div class="wheel-card-footer">
+              <span class="stat-item" style="font-size: 0.825rem; color: var(--text-muted);">
+                🎯 {{ wheel.options.count }} seçenek
+              </span>
+              <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-sm btn-secondary btn-share" data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'wheels:detail' wheel_id=wheel.id %}" data-title="{{ wheel.title }}" title="Çarkı Paylaş">
+                  🔗 Paylaş
+                </button>
+                <a href="{% url 'wheels:detail' wheel_id=wheel.id %}" class="btn btn-sm btn-primary">
+                  🎡 Çevir &rarr;
+                </a>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+
+      <!-- Sayfalama -->
+      {% if page_obj.has_other_pages %}
+        <nav style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin: 2rem 0;" aria-label="Sayfalama">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if tab %}&tab={{ tab }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
+              &larr; Önceki
+            </a>
+          {% else %}
+            <span class="btn btn-secondary btn-sm" style="opacity: 0.4; cursor: not-allowed;">
+              &larr; Önceki
+            </span>
+          {% endif %}
+
+          <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-secondary);">
+            {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+          </span>
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if tab %}&tab={{ tab }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="btn btn-secondary btn-sm">
+              Sonraki &rarr;
+            </a>
+          {% else %}
+            <span class="btn btn-secondary btn-sm" style="opacity: 0.4; cursor: not-allowed;">
+              Sonraki &rarr;
+            </span>
+          {% endif %}
+        </nav>
+      {% endif %}
+
+    {% else %}
+      <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+        <div style="font-size: 3.5rem; margin-bottom: 1rem;">🎡</div>
+        {% if q %}
+          <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Aradığın kriterde çark bulunamadı</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+            "{{ q }}" başlığında bir çark henüz yok. İlk çarkı sen oluşturmak ister misin?
+          </p>
+          <div style="display: flex; gap: 0.75rem; justify-content: center;">
+            <a href="{% url 'wheels:list' %}" class="btn btn-secondary">Tüm Çarklar</a>
+            <a href="{% url 'wheels:create' %}" class="btn btn-primary">Yeni Çark Oluştur</a>
+          </div>
+        {% else %}
+          <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Henüz hiç karar çarkı açılmadı</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+            İlk çarkı sen oluştur, toplulukla paylaş ve kararı şansa bırak!
+          </p>
+          <a href="{% url 'wheels:create' %}" class="btn btn-primary">
+            İlk Karar Çarkını Başlat
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  </main>
+
+  <!-- SAĞ SÜTUN: İstatistikler & Popüler Çarklar Sidebar -->
+  <aside class="social-sidebar">
+
+    <!-- WIDGET 1: Canlı Çark Nabzı -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <span class="widget-title">
+          <span>🎡</span> Çark İstatistikleri
+        </span>
+        <span class="pulse-indicator">
+          <span class="pulse-dot"></span> Canlı
+        </span>
+      </div>
+
+      <div class="stat-counter-grid">
+        <div class="stat-counter-box">
+          <span class="stat-counter-value">{{ total_public_wheels }}</span>
+          <span class="stat-counter-label">Aktif Çark</span>
+        </div>
+        <div class="stat-counter-box">
+          <span class="stat-counter-value">{{ total_spins }}</span>
+          <span class="stat-counter-label">Toplam Çevrilme</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- WIDGET 2: Popüler Çarklar -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <span class="widget-title">
+          <span>⚡</span> En Çok Çevrilenler
+        </span>
+        <a href="?tab=popular" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-1);">
+          Tümü &rarr;
+        </a>
+      </div>
+
+      {% if top_wheels %}
+        <div class="trending-list">
+          {% for tw in top_wheels %}
+            <a href="{% url 'wheels:detail' wheel_id=tw.id %}" class="trend-item">
+              <span class="trend-rank">#{{ forloop.counter }}</span>
+              <div class="trend-content">
+                <h4 class="trend-question">{{ tw.title }}</h4>
+                <div class="trend-meta">
+                  <span>🔄 <strong>{{ tw.spin_count }}</strong> çevrildi</span>
+                  <span>&bull; {{ tw.options.count }} seçenek</span>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 1rem 0;">
+          Henüz popüler çark bulunmuyor.
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- WIDGET 3: Nasıl Çalışır? -->
+    <div class="widget-card" style="background: linear-gradient(135deg, var(--bg-card) 0%, var(--accent-1-soft) 100%);">
+      <div class="widget-header">
+        <span class="widget-title">
+          <span>💡</span> Nasıl Çalışır?
+        </span>
+      </div>
+      <ol style="font-size: 0.85rem; color: var(--text-secondary); padding-left: 1.25rem; line-height: 1.8;">
+        <li><strong>Seçeneklerini yaz:</strong> Minimum 2, maksimum 20 seçenek belirle.</li>
+        <li><strong>Çarkını çevir:</strong> Şans ibresinin durmasını bekle.</li>
+        <li><strong>Sonucu gör:</strong> Çark kararını versin, kararsızlıktan kurtul!</li>
+      </ol>
+      <div style="margin-top: 1rem;">
+        <a href="{% url 'wheels:create' %}" class="btn btn-outline btn-sm" style="width: 100%; text-align: center;">
+          Hemen Çark Yap 🚀
+        </a>
+      </div>
+    </div>
+
+  </aside>
+</div>
+{% endblock %}

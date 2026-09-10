@@ -5,6 +5,7 @@ from polls import views as poll_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('wheels/', include('wheels.urls', namespace='wheels')),
     path('', include('polls.urls', namespace='polls')),
     # Debug preview routes for custom error pages
     path('error/404/', poll_views.custom_404, name='preview_404'),

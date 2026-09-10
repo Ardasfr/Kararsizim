@@ -27,13 +27,16 @@
       </a>
     </div>
 
-    <!-- Feed Sekmeleri: En Yeniler vs Trendler -->
+    <!-- Feed Sekmeleri: En Yeniler vs Trendler vs Karar Çarkları -->
     <div class="feed-tabs-wrapper">
       <a href="?tab=latest{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="feed-tab {% if tab == 'latest' %}active{% endif %}">
         <span>🔥</span> En Yeniler
       </a>
       <a href="?tab=trending{% if current_category %}&category={{ current_category.slug }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="feed-tab {% if tab == 'trending' %}active{% endif %}">
         <span>⚡</span> Trendler
+      </a>
+      <a href="{% url 'wheels:list' %}" class="feed-tab">
+        <span>🎡</span> Karar Çarkları
       </a>
     </div>
 
@@ -219,6 +222,27 @@
             <span style="opacity: 0.55; font-size: 0.75rem;">({{ cat.p_count }})</span>
           </a>
         {% endfor %}
+      </div>
+    </div>
+
+    <!-- WIDGET 4: Karar Çarkı Tanıtım -->
+    <div class="widget-card" style="background: linear-gradient(135deg, var(--bg-card) 0%, var(--accent-1-soft) 100%);">
+      <div class="widget-header">
+        <span class="widget-title">
+          <span>🎡</span> Karar Çarkı
+        </span>
+        <span class="badge-pill-spins" style="font-size: 0.725rem;">Yeni</span>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.85rem; line-height: 1.5;">
+        İki seçenek arasında mı kaldın? Kararını şansa bırak, çarkı çevir!
+      </p>
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="{% url 'wheels:list' %}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center;">
+          Çarkları Gör
+        </a>
+        <a href="{% url 'wheels:create' %}" class="btn btn-primary btn-sm" style="flex: 1; text-align: center;">
+          Çark Yap 🎲
+        </a>
       </div>
     </div>
 

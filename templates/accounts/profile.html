@@ -36,12 +36,95 @@
     </div>
 
     <div style="background: var(--bg-card); padding: 0.85rem; border-radius: var(--border-radius-md); border: 1px solid var(--border); text-align: center;">
-      <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">Tamamlanan</span>
-      <strong style="font-family: var(--font-display); font-size: 1.4rem; color: var(--text-secondary);">{{ expired_polls_count }}</strong>
+      <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">Karar Çarkım</span>
+      <strong style="font-family: var(--font-display); font-size: 1.4rem; color: var(--accent-1);">{{ user_wheels.count }}</strong>
+    </div>
+
+    <div style="background: var(--bg-card); padding: 0.85rem; border-radius: var(--border-radius-md); border: 1px solid var(--border); text-align: center;">
+      <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">Çark Çevrilme</span>
+      <strong style="font-family: var(--font-display); font-size: 1.4rem; color: var(--accent-2);">{{ total_wheel_spins }}</strong>
     </div>
   </div>
 </section>
 
+<!-- Karar Çarklarım Bölümü -->
+<section style="margin-bottom: 2.5rem;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+    <h2 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+      <span>🎡</span> Benim Karar Çarklarım
+    </h2>
+    <a href="{% url 'wheels:create' %}" class="btn btn-primary btn-sm">
+      ➕ Yeni Çark Aç
+    </a>
+  </div>
+
+  {% if user_wheels %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+      {% for wheel in user_wheels %}
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 0.85rem; border: 1px solid var(--border);">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <h3 style="font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; margin: 0;">
+                <a href="{% url 'wheels:detail' wheel_id=wheel.id %}" style="color: var(--text-primary); text-decoration: none;">
+                  {{ wheel.title }}
+                </a>
+              </h3>
+              {% if wheel.is_public %}
+                <span class="badge-pill-public" style="font-size: 0.7rem;">Herkese Açık</span>
+              {% else %}
+                <span class="badge-pill-private" style="font-size: 0.7rem;">Gizli</span>
+              {% endif %}
+            </div>
+
+            {% if wheel.description %}
+              <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.75rem;">
+                {{ wheel.description|truncatechars:70 }}
+              </p>
+            {% endif %}
+
+            <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.5rem;">
+              {% for opt in wheel.options.all|slice:":3" %}
+                <span class="wheel-slice-tag" style="font-size: 0.75rem; border-left: 3px solid {{ opt.color|default:'var(--accent-1)' }};">
+                  {{ opt.text }}
+                </span>
+              {% endfor %}
+              {% if wheel.options.count > 3 %}
+                <span class="wheel-slice-tag more-tag" style="font-size: 0.75rem;">+{{ wheel.options.count|add:"-3" }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 0.65rem; border-top: 1px solid var(--border);">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">
+              🔄 <strong>{{ wheel.spin_count }}</strong> çevrilme
+            </span>
+            <div style="display: flex; gap: 0.4rem;">
+              <a href="{% url 'wheels:delete' wheel_id=wheel.id %}" class="btn btn-icon btn-sm" style="color: var(--accent-2);" title="Çarkı Sil" aria-label="Çarkı Sil">
+                🗑️
+              </a>
+              <a href="{% url 'wheels:detail' wheel_id=wheel.id %}" class="btn btn-primary btn-sm">
+                Çevir &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align: center; padding: 2.25rem 1rem;">
+      <span style="font-size: 2.5rem;">🎡</span>
+      <h3 style="font-family: var(--font-display); margin: 0.75rem 0 0.4rem 0; font-size: 1.15rem;">Henüz bir karar çarkı oluşturmadın</h3>
+      <p style="color: var(--text-secondary); margin-bottom: 1.25rem; font-size: 0.9rem;">
+        Seçeneklerini yazarak kendi şans çarkını oluşturabilir ve hemen çevirebilirsin!
+      </p>
+      <a href="{% url 'wheels:create' %}" class="btn btn-primary btn-sm">
+        İlk Karar Çarkını Yap
+      </a>
+    </div>
+  {% endif %}
+</section>
+
+<!-- Anketlerim Bölümü -->
 <section>
   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
     <h2 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 800;">
